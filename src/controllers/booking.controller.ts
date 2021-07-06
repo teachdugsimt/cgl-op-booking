@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { Controller, GET, getInstanceByToken } from 'fastify-decorators';
 import PingService from '../services/ping.service';
-import pingSchema from './ping.schema';
+import pingSchema from './booking.schema';
 
 
 @Controller({ route: '/ping' })
