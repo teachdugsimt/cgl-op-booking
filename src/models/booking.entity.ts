@@ -1,4 +1,4 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, PrimaryGeneratedColumn, BeforeInsert, BeforeUpdate } from "typeorm";
 
 @Index("booking_pkey", ["id"], { unique: true })
 @Entity("booking", { schema: "public" })
@@ -23,14 +23,15 @@ export class Booking {
     name: "status",
     nullable: true,
     enum: ["WAITING", "ACCEPTED", "REJECTED"],
+    default: "WAITING"
   })
   status: "WAITING" | "ACCEPTED" | "REJECTED" | null;
 
   @Column("integer", { name: "requester_user_id" })
   requesterUserId: number;
 
-  @Column("integer", { name: "accept_user_id" })
-  acceptUserId: number;
+  @Column("integer", { name: "accepter_user_id" })
+  accepterUserId: number;
 
   @Column("timestamp without time zone", {
     name: "created_at",
@@ -45,4 +46,16 @@ export class Booking {
     default: () => "CURRENT_TIMESTAMP",
   })
   updatedAt: Date | null;
+
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  addUpdateTime() {
+    this.updatedAt = new Date()
+  }
+
+  @BeforeInsert()
+  addInsertTime() {
+    this.createdAt = new Date()
+  }
 }
