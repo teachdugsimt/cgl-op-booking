@@ -39,10 +39,14 @@ export default class TripService {
       select: [
         'jobId',
         // 'carrierId',
+        'price',
+        'priceType',
+        'productName',
         'productTypeId',
         'truckType',
         'totalWeight',
         'requiredTruckAmount',
+        'from',
         'to',
         'owner',
       ],
@@ -61,6 +65,8 @@ export default class TripService {
       delete trip.jobId;
       return {
         id: newJobId,
+        price: Math.round(trip.price * 100) / 100,
+        weight: Math.round(trip.totalWeight * 100) / 100,
         ...trip
       }
     })
