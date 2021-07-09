@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { Controller, GET, POST, PATCH, getInstanceByToken } from 'fastify-decorators';
 import BookingService from '../services/booking.service';
-import { bookingSchema, bookingUpdateSchema, getMyJobSchema } from './booking.schema';
+import { bookingSchema, bookingUpdateSchema, getMyJobSchema, getJobWithBookingId } from './booking.schema';
 import * as Types from './booking.types'
 import Utility from 'utility-layer/dist/security'
 const util = new Utility();
@@ -51,8 +51,8 @@ export default class PingController {
       id: quotationId, status: req.body.status, accepterUserId
     }
     console.log("Object Params update controller :: ", objectParams)
-    const result = await this.bookingService.updateBooking(objectParams)
-    if (result && result.id)
+    const result = await this.bookingService.updateBooking(objectParams, req.headers.authorization)
+    if (result == true || result?.id)
       reply.send(1) // success
     else reply.send(0) // fail
   }
@@ -70,7 +70,24 @@ export default class PingController {
     console.log("User id :: ", userId)
     const result = await this.bookingService.findListMyJob(req.query, userId)
     return { ...result }
+  }
 
+
+
+  @GET({
+    url: '/:bookingId',
+    options: {
+      schema: getJobWithBookingId
+    }
+  })
+  async getJobWithBookingId(req: FastifyRequest<{ Params: { bookingId: string }, Headers: { authorization: string } }>, reply: FastifyReply): Promise<any> {
+    const userIdFromToken = util.getUserIdByToken(req.headers.authorization);
+    const userId = util.decodeUserId(userIdFromToken)
+    const bookingId = util.decodeUserId(req.params.bookingId)
+
+    console.log("User id :: ", userId)
+    const result = await this.bookingService.findJobByBookingId(bookingId)
+    return { ...result }
   }
 
 }

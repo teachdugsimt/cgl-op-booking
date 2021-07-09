@@ -4,3 +4,4 @@ export * from './job-carrier.entity';
 export * from './trip.entity';
 export * from './vw-trip-inprogress.entity';
 export * from './vw_my_job_new_list.entity'
+export * from './vw_job_with_booking_id.entity'

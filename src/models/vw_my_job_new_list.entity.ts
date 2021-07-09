@@ -1,5 +1,6 @@
-import { ViewEntity, ViewColumn, ObjectIdColumn,  } from "typeorm";
-
+import { ViewEntity, ViewColumn, AfterLoad  } from "typeorm";
+import Security from 'utility-layer/dist/security'
+const security = new Security();
 @ViewEntity({
   name: 'vw_my_job_new_list',
   expression: `
@@ -65,7 +66,7 @@ GROUP BY listall.id, listall.user_id, listall.product_type_id, listall.product_n
 export class VwMyJobNewList {
 
   @ViewColumn({ name: 'id' })
-  id: number
+  id: string
 
   @ViewColumn({ name: 'product_type_id' })
   productTypeId: number
@@ -104,6 +105,7 @@ export class VwMyJobNewList {
   @ViewColumn({ name: 'owner' })
   owner: {
     id: number
+    userId: string
     fullName: string
     email: string
     mobileNo: string
@@ -125,4 +127,13 @@ export class VwMyJobNewList {
   price: number
   @ViewColumn({ name: 'price_type' })
   priceType: string
+
+  @AfterLoad()
+  encodeFields() {
+    this.id = security.encodeUserId(+this.id);
+    // this.jobId = security.encodeUserId(+this.jobId);
+    // this.carrierId = security.encodeUserId(+this.carrierId);
+    this.owner.userId = security.encodeUserId(+this.owner.id);
+  }
+
 }

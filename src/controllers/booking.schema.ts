@@ -87,3 +87,110 @@ export const getMyJobSchema: FastifySchema = {
 }
 
 
+
+const truckProperties = {
+  id: { type: 'string' },
+  truckType: { type: 'number' },
+  loadingWeight: { type: 'number', nullable: true },
+  stallHeight: { type: 'string', nullable: true },
+  createdAt: { type: "string", format: "date-time" },
+  updatedAt: { type: "string", format: "date-time" },
+  approveStatus: { type: 'number' },
+  registrationNumber: { type: 'array', nullable: true },
+  tipper: { type: 'boolean', nullable: true },
+  workingZones: { type: 'array' },
+  owner: {
+    type: 'object', properties: {
+      id: { type: 'number', nullable: true },
+      userId: { type: 'string', nullable: true },
+      companyName: { type: 'string', nullable: true },
+      fullName: { type: 'string', nullable: true },
+      mobileNo: { type: 'string', nullable: true },
+      email: { type: 'string', nullable: true },
+      avatar: { type: 'string', nullable: true },
+      object: { type: 'string', nullable: true },
+      token: { type: 'string', nullable: true },
+    }, nullable: true
+  },
+  truckPhotos: {
+    type: 'object', properties: {
+      front: { type: 'string', nullable: true },
+      back: { type: 'string', nullable: true },
+      left: { type: 'string', nullable: true },
+      right: { type: 'string', nullable: true }
+    }
+  }
+}
+
+
+export const getJobWithBookingId: FastifySchema = {
+  headers: {
+    type: 'object',
+    properties: {
+      authorization: { type: 'string' }
+    },
+    require: ['authorization']
+  },
+  params: {
+    bookingId: { type: 'string' }
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', nullable: true },
+        productTypeId: { type: 'number', nullable: true },
+        productName: { type: 'string', nullable: true },
+        truckType: { type: 'string', nullable: true },
+        weight: { type: 'number', nullable: true },
+        requiredTruckAmount: { type: 'number', nullable: true },
+
+        from: {
+          type: 'object', properties: {
+            name: { type: 'string', nullable: true },
+            dateTime: { type: 'string', nullable: true },
+            contactName: { type: 'string', nullable: true },
+            contactMobileNo: { type: 'string', nullable: true },
+            lat: { type: 'string', nullable: true },
+            lng: { type: 'string', nullable: true },
+          }, nullable: true
+        },
+
+        to: {
+          type: 'array',
+          items: {
+            properties: {
+              name: { type: 'string', nullable: true },
+              dateTime: { type: 'string', nullable: true },
+              contactName: { type: 'string', nullable: true },
+              contactMobileNo: { type: 'string', nullable: true },
+              lat: { type: 'string', nullable: true },
+              lng: { type: 'string', nullable: true },
+            }
+          },
+          nullable: true
+        },
+
+
+        owner: {
+          type: 'object', properties: {
+            id: { type: 'number', nullable: true },
+            userId: { type: 'string', nullable: true },
+            companyName: { type: 'string', nullable: true },
+            fullName: { type: 'string', nullable: true },
+            mobileNo: { type: 'string', nullable: true },
+            email: { type: 'string', nullable: true },
+            avatar: { type: 'string', nullable: true },
+            object: { type: 'string', nullable: true },
+            token: { type: 'string', nullable: true },
+          }, nullable: true
+        },
+
+        quotations: { type: 'array', nullable: true },
+        truck: { type: 'object', properties: truckProperties, nullable: true },
+        price: { type: 'number', nullable: true },
+        priceType: { type: 'string', nullable: true },
+      },
+    }
+  }
+}
