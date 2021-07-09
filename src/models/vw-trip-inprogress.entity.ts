@@ -10,6 +10,9 @@ const security = new Security();
 	jc.job_id AS job_id,
 	jc.carrier_id AS carrier_id,
 	vwjob.product_type_id AS product_type_id,
+	vwjob.product_name AS product_name,
+	vwjob.price AS price,
+	vwjob.price_type AS price_type,
 	vwjob.truck_type AS truck_type,
 	vwjob.weight AS total_weight,
 	vwjob.required_truck_amount AS required_truck_amount,
@@ -46,13 +49,14 @@ const security = new Security();
 FROM
 	job_carrier jc
 	LEFT JOIN trip t ON t.job_carrier_id = jc.id
-	LEFT JOIN dblink('jobserver'::text, 'SELECT id, product_type_id, product_name, truck_type, weight, required_truck_amount, price, loading_address, loading_datetime, loading_contact_name, loading_contact_phone, loading_latitude, loading_longitude, owner, shipments FROM vw_job_list'::text) vwjob (id INTEGER,
+	LEFT JOIN dblink('jobserver'::text, 'SELECT id, product_type_id, product_name, price, price_type, truck_type, weight, required_truck_amount, loading_address, loading_datetime, loading_contact_name, loading_contact_phone, loading_latitude, loading_longitude, owner, shipments FROM vw_job_list'::text) vwjob (id INTEGER,
 		product_type_id INTEGER,
 		product_name TEXT,
+		price NUMERIC,
+		price_type TEXT,
 		truck_type TEXT,
 		weight NUMERIC,
 		required_truck_amount INTEGER,
-		price NUMERIC,
 		loading_address TEXT,
 		loading_datetime TEXT,
 		loading_contact_name TEXT,
@@ -90,7 +94,10 @@ GROUP by
 	vwjob.loading_latitude,
 	vwjob.loading_longitude,
 	vwjob.owner,
-	vwjob.shipments;
+	vwjob.shipments,
+	vwjob.product_name,
+	vwjob.price,
+	vwjob.price_type;
   `,
 })
 export class VwTripInprogress {
@@ -103,6 +110,15 @@ export class VwTripInprogress {
 
   @ViewColumn({ name: 'carrier_id' })
   carrierId!: number | string
+
+  @ViewColumn({ name: 'price' })
+  price!: number
+
+  @ViewColumn({ name: 'price_type' })
+  priceType!: string
+
+  @ViewColumn({ name: 'product_name' })
+  productName!: string
 
   @ViewColumn({ name: 'product_type_id' })
   productTypeId!: number
