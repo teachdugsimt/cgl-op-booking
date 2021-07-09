@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import fp from 'fastify-plugin';
 import { createConnection } from 'typeorm';
-import { Booking } from '../models';
+import { Booking, JobCarrier, Trip, VwTripInprogress } from '../models';
 
 export default fp(async server => {
   try {
@@ -9,7 +9,10 @@ export default fp(async server => {
     console.log('database connected');
 
     server.decorate('db', {
-      booking: connection.getRepository(Booking)
+      booking: connection.getRepository(Booking),
+      trip: connection.getRepository(Trip),
+      jobCarrier: connection.getRepository(JobCarrier),
+      vwTripInprogress: connection.getRepository(VwTripInprogress),
     });
   } catch (error) {
     console.log(error);
