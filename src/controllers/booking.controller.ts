@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { Controller, GET, POST, PATCH, getInstanceByToken } from 'fastify-decorators';
 import BookingService from '../services/booking.service';
-import { bookingSchema, bookingUpdateSchema } from './booking.schema';
+import { bookingSchema, bookingUpdateSchema, getMyJobSchema } from './booking.schema';
 import * as Types from './booking.types'
 import Utility from 'utility-layer/dist/security'
 const util = new Utility();
@@ -55,6 +55,22 @@ export default class PingController {
     if (result && result.id)
       reply.send(1) // success
     else reply.send(0) // fail
+  }
+
+  @GET({
+    url: '/my-job',
+    options: {
+      schema: getMyJobSchema
+    }
+  })
+  async getMyJobList(req: FastifyRequest<{ Querystring: Types.MyJobFilterList, Headers: { authorization: string } }>, reply: FastifyReply): Promise<any> {
+    const userIdFromToken = util.getUserIdByToken(req.headers.authorization);
+    const userId = util.decodeUserId(userIdFromToken)
+
+    console.log("User id :: ", userId)
+    const result = await this.bookingService.findListMyJob(req.query, userId)
+    return { ...result }
+
   }
 
 }

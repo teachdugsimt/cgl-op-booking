@@ -52,4 +52,38 @@ export const bookingUpdateSchema: FastifySchema = {
   }
 }
 
+export const getMyJobSchema: FastifySchema = {
+  headers: {
+    type: 'object',
+    properties: {
+      authorization: { type: 'string' }
+    },
+    require: ['authorization']
+  },
+  querystring: {
+    type: 'object',
+    properties: {
+      descending: { type: 'boolean', nullable: true },
+      page: { type: 'number', nullable: true },
+      rowsPerPage: { type: 'number', nullable: true },
+      sortBy: { type: 'string', nullable: true },
+      type: { type: 'number' }
+    },
+    require: ['type']
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        data: { type: 'array' },
+        totalElements: { type: 'number' },
+        size: { type: 'number' },
+        numberOfElements: { type: 'number' },
+        currentPage: { type: 'number' },
+        totalPages: { type: 'number' },
+      },
+    }
+  }
+}
+
 
