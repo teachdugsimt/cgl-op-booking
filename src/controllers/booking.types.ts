@@ -13,8 +13,24 @@ export interface FullPostBooking {
   accepterUserId: number
 }
 
+
+export interface MyJobFilterList {
+  descending?: boolean | undefined
+  page?: number | string
+  rowsPerPage?: number | string
+  sortBy?: string | undefined
+  type: number
+}
+
 export interface FullUpdateBooking {
   id: number, // quotation ID
   status: string,
   accepterUserId: number
+}
+
+export interface PramsFindMyJob {
+  take: number
+  skip: number
+  where: any
+  order: any,
 }
