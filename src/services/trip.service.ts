@@ -35,7 +35,7 @@ export default class TripService {
     const numbOfPage = page <= 1 ? 0 : (+page - 1) * rowsPerPage;
 
     const options: any = {
-      where: `carrier_id = ${decodeUserId} OR trips::JSONB @> '[{"owner":{"id": ${decodeUserId}}}]'`,
+      where: `carrier_id = ${decodeUserId} OR (job_owner ->> 'id')::INTEGER = ${decodeUserId} OR trips::JSONB @> '[{"owner":{"id": ${decodeUserId}}}]'`,
       select: [
         'jobId',
         // 'carrierId',
