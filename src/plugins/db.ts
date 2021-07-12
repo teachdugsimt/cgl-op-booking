@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import fp from 'fastify-plugin';
 import { createConnection } from 'typeorm';
-import { Booking, JobCarrier, Trip, VwTripInprogress, VwMyJobNewList, VwJobWithBookingId } from '../models';
+import { Booking, JobCarrier, Trip, VwTripInprogress, VwMyJobNewList, VwJobWithBookingId, VwMyJobDoneList } from '../models';
 
 export default fp(async server => {
   try {
@@ -14,6 +14,7 @@ export default fp(async server => {
       jobCarrier: connection.getRepository(JobCarrier),
       vwTripInprogress: connection.getRepository(VwTripInprogress),
       vwMyJobNewList: connection.getRepository(VwMyJobNewList),
+      vwMyJobDoneList: connection.getRepository(VwMyJobDoneList),
       vwJobWithBookingId: connection.getRepository(VwJobWithBookingId),
     });
   } catch (error) {

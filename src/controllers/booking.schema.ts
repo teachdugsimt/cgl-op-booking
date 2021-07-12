@@ -180,7 +180,7 @@ export const getJobWithBookingId: FastifySchema = {
             fullName: { type: 'string', nullable: true },
             mobileNo: { type: 'string', nullable: true },
             email: { type: 'string', nullable: true },
-            avatar: { type: 'string', nullable: true },
+            avatar: { type: 'object', properties: { object: { type: 'string', nullable: true } }, nullable: true },
             object: { type: 'string', nullable: true },
             token: { type: 'string', nullable: true },
           }, nullable: true

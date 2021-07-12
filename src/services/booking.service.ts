@@ -6,6 +6,7 @@ import TripRepository from '../repositories/trip.repository';
 import JobCarrierRepository from '../repositories/job-carrier.repository';
 import TripService from './trip.service'
 import axios from 'axios'
+import moment from 'moment-timezone'
 
 import Utility from 'utility-layer/dist/security'
 const util = new Utility();
@@ -49,7 +50,7 @@ export default class BookingService {
     let resultUpdate = await repo.update(objectParams)
 
     if (resultUpdate && objectParams.status == "ACCEPTED") {
-      const bookingData = await repo.findOne({ where: [{ id: objectParams.id }] })
+      const bookingData = await repo.findOne({ where: [{ id: objectParams.id }] }) // find all for รถอาทสองคัน จองงานตั้มงานเดียว
       console.log("Booking dsata :: , ", bookingData)
       const jobData = await this.getJob(bookingData.jobId, authorization)
       console.log("Job data :: ", jobData.data)
@@ -58,7 +59,11 @@ export default class BookingService {
 
       const truck = truckData.data
       const job = jobData.data
-      const addCarrierJob = await jobCarrierRepo.add({ jobId: bookingData.jobId, carrierId: truck.carrierId })
+      const checkExistCarrierJobTable = await jobCarrierRepo.find({ where: [{ jobId: bookingData.jobId, carrierId: truck.carrierId }] })
+      let addCarrierJob
+      if (checkExistCarrierJobTable.length < 1)
+        addCarrierJob = await jobCarrierRepo.add({ jobId: bookingData.jobId, carrierId: truck.carrierId })
+      else addCarrierJob = checkExistCarrierJobTable[0]
       console.log("Add trip repo :: ", addCarrierJob)
       const addTrip = await tripRepo.add({
         jobCarrierId: addCarrierJob.id,
@@ -66,7 +71,7 @@ export default class BookingService {
         weight: job.weight,
         price: job.price,
         priceType: job.priceType,
-        status: 'OPEN',
+        status: 'IN_PROGRESS',
         bookingId: bookingData.id,
         createdUser: "" + objectParams.accepterUserId
       })
@@ -75,7 +80,33 @@ export default class BookingService {
     return true
   }
 
-  attachType(list: any, userId: string): any {
+  attachTypeNewJob(list: any, userId: string): any {
+    const tmpData: any = JSON.parse(JSON.stringify(list))
+    console.log("tmp data :: ", tmpData)
+    const newList = tmpData[0].map((e: any) => {
+      if (!e.status) { // don't have status
+        e.type = "IM_OWNER_JOB"
+      } else {  // Only status wating
+        if (e.requesterUserId == userId) { // เราไปขอจอง งาน/รถ คนอื่น - เราเป็น requester
+          e.type = e.requesterType == 'JOB_OWNER' ?
+            "IM_OWNER_JOB_REQUEST_BOOKING_OTHER_MAN_CAR" : "IM_OWNER_CAR_REQUEST_BOOKING_OTHER_MAN_JOB"
+        } else if (e.accepterUserId == userId) { // เราโดน คนอื่น มาขอจอง งาน/รถ - เราเป็น accepter
+          e.type = e.requesterType == 'JOB_OWNER' ?
+            "IM_OWNER_CAR_HAVE_JOB_ASK_FOR_BOOKING" : "IM_OWNER_JOB_HAVE_CAR_ASK_FOR_BOOKING"
+        }
+      }
+      e.quotationNumber = e.quotations ? e.quotations.length : 0
+      delete e.loadingDatetime
+      delete e.accepterUserId;
+      delete e.requesterType;
+      delete e.requesterUserId;
+      delete e.status;
+      return e
+    })
+    tmpData[0] = newList
+    return tmpData
+  }
+  attachTypeDoneJob(list: any, userId: string): any {
     const tmpData = JSON.parse(JSON.stringify(list))
     console.log("tmp data :: ", tmpData)
     const newList = tmpData[0].map(e => {
@@ -88,6 +119,8 @@ export default class BookingService {
         } else if (e.accepterUserId == userId) { // เราโดน คนอื่น มาขอจอง งาน/รถ - เราเป็น accepter
           e.type = e.requesterType == 'JOB_OWNER' ?
             "IM_OWNER_CAR_HAVE_JOB_ASK_FOR_BOOKING" : "IM_OWNER_JOB_HAVE_CAR_ASK_FOR_BOOKING"
+        } else if (!e.requesterUserId && !e.accepterUserId) {
+          e.type = "IM_OWNER_JOB"
         }
       }
       return e
@@ -96,7 +129,10 @@ export default class BookingService {
     return tmpData
   }
   async findMyjobNew(realPage: number, realTake: number, descending: boolean, sortBy: string, userId: string, type: number): Promise<any> {
-    const finalFilter: string = ` "VwMyJobNewList"."user_id" = ${userId} or (("VwMyJobNewList"."requester_user_id" = ${userId} or "VwMyJobNewList"."accepter_user_id" = ${userId}) and "VwMyJobNewList"."status" = '${enum_booking_status[type]}') `
+    const newDate = moment((new Date())).format("YYYY-MM-DD HH:mm:ss")
+    console.log("New date :: ", newDate)
+    const finalFilter: string = ` "VwMyJobNewList"."loading_datetime" >= '${newDate}' and ("VwMyJobNewList"."status" IS NULL or "VwMyJobNewList"."status" = '${enum_booking_status[type]}') and ("VwMyJobNewList"."user_id" = ${userId} or "VwMyJobNewList"."requester_user_id" = ${userId} or "VwMyJobNewList"."accepter_user_id" = ${userId})`
+
     const findOptions: FindManyOptions = {
       take: realTake,
       skip: realPage,
@@ -106,7 +142,7 @@ export default class BookingService {
       },
     };
     const data = await repo.findNewJob(findOptions)
-    const parseData = this.attachType(data, userId)
+    const parseData = this.attachTypeNewJob(data, userId)
     return parseData
   }
 
@@ -120,19 +156,24 @@ export default class BookingService {
   }
 
   async findMyJobDone(realPage: number, realTake: number, descending: boolean, sortBy: string, userId: string, type: number): Promise<any> {
+    const finalFilter: string = ` ("VwMyJobDoneList"."status" = 'REJECTED' or "VwMyJobDoneList"."job_status" = 'DONE' or "VwMyJobDoneList"."job_status" = 'CANCELLED' or "VwMyJobDoneList"."job_status" = 'EXPIRED')
+ and ("VwMyJobDoneList"."user_id" = ${userId} or "VwMyJobDoneList"."requester_user_id" = ${userId} or "VwMyJobDoneList"."accepter_user_id" = ${userId})`
 
-    // const findOptions: FindManyOptions = {
-    //   take: realTake,
-    //   skip: realPage,
-    //   where: finalFilter,
-    //   order: {
-    //     [`${sortBy}`]: descending ? "ASC" : "DESC"
-    //   },
-    // };
+    const findOptions: FindManyOptions = {
+      take: realTake,
+      skip: realPage,
+      where: finalFilter,
+      order: {
+        [`${sortBy}`]: descending ? "ASC" : "DESC"
+      },
+    };
+    const data = await repo.findDoneJob(findOptions)
+    const parseData = this.attachTypeDoneJob(data, userId)
+    return parseData
   }
 
   async findListMyJob(query: Types.MyJobFilterList, userId: string) {
-    let { rowsPerPage = 10, page = 1, descending = false, sortBy = "id", type = 0 } = query;
+    let { rowsPerPage = 10, page = 1, descending = false, sortBy = "id", type } = query;
     let realPage: number;
     let realTake: number;
     if (rowsPerPage) realTake = +rowsPerPage;
@@ -150,7 +191,17 @@ export default class BookingService {
     if (type == 0) data = await this.findMyjobNew(realPage, realTake, descending, sortBy, userId, type)
     else if (type == 1) data = await this.findMyJobInprogress({ ...query, userId })
     else if (type == 2) data = await this.findMyJobDone(realPage, realTake, descending, sortBy, userId, type)
-
+    else {
+      const response_final = {
+        data: [],
+        totalElements: 0,
+        size: rowsPerPage,
+        numberOfElements: 0,
+        currentPage: page,
+        totalPages: Math.ceil((0) / (+rowsPerPage))
+      }
+      return response_final
+    }
     const response_final = {
       data: data[0] || [],
       totalElements: data[1] || 0,

@@ -38,7 +38,7 @@ export class VwJobWithBookingId {
   productName: string
 
   @ViewColumn({ name: 'truck_type' })
-  truckType: number
+  truckType: number | string
 
   @ViewColumn({ name: 'weight' })
   weight: number
@@ -79,20 +79,21 @@ export class VwJobWithBookingId {
 
   @ViewColumn({ name: 'quotations' })
   quotations: Array<{
-    "id": number
+    "id": string
     "fullName": string | null
     "avatar": { object: string | null }
     "truck": {
-      "id": number
+      "id": string
       "owner": {
         "id": number | null
+        "userId": string
         "email": string | null
         "avatar": { object: string | null }
         "fullName": string | null
         "mobileNo": string | null
         "companyName": string
       }
-      "tipper": false
+      "tipper": boolean
       "work_zone": Array<{
         region: number | null
         province: number | null
@@ -101,11 +102,17 @@ export class VwJobWithBookingId {
       "truck_type": number
       "updated_at": Date
       "stall_height": string | null
-      "truck_photos": null
+      "truck_photos": {
+        front: string | null
+        back: string | null
+        left: string | null
+        right: string | null
+      } | null
       "approve_status": "INACTIVE" | "ACTIVE"
       "loading_weight": number | null
-      "registration_number": Array<string>
-    }, "bookingDatetime": Date
+      "registration_number": string[]
+    }
+    "bookingDatetime": Date
   }>
 
   // @ViewColumn({ name: 'status' })
@@ -126,6 +133,18 @@ export class VwJobWithBookingId {
   encodeFields() {
     this.id = security.encodeUserId(+this.id);
     this.owner.userId = security.encodeUserId(+this.owner.id);
+    const tmp = this.quotations
+    if (this.truckType) this.truckType = this.truckType.toString()
+    if (this.from.lat) this.from.lat = this.from.lat.toString()
+    if (this.from.lng) this.from.lng = this.from.lng.toString()
+    if (tmp && Array.isArray(tmp) && tmp.length > 0)
+      tmp.map(e => {
+        e.id = e.id ? security.encodeUserId(+e.id) : '';
+        e.truck.id = e.truck.id ? security.encodeUserId(+e.truck.id) : '';
+        e.truck.owner.companyName = e.truck.owner.fullName || ''
+        e.truck.owner.userId = e.truck.owner.id ? security.encodeUserId(+e.truck.owner.id) : ''
+      })
+
   }
 
 }

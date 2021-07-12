@@ -5,18 +5,19 @@ const security = new Security();
 
 @ViewEntity({
   name: 'vw_booking',
-  expression: ` SELECT book.id,
-  book.job_id,
-  truck.owner ->> 'fullName'::text AS fullname,
-  truck.owner ->> 'avatar'::text AS avatar,
-  book.created_at AS booking_datetime,
-      CASE
-          WHEN book.truck_id = truck.id THEN json_build_object('id', truck.id, 'truck_type', truck.truck_type, 'loading_weight', truck.loading_weight, 'stall_height', truck.stall_height, 'created_at', truck.created_at, 'updated_at', truck.updated_at, 'approve_status', truck.approve_status, 'registration_number', truck.registration_number, 'truck_photos', truck.truck_photos, 'work_zone', truck.work_zone, 'tipper', truck.tipper, 'owner', truck.owner)
-          ELSE COALESCE('{}'::json)
-      END AS truck
- FROM booking book
-   LEFT JOIN dblink('truckserver'::text, 'SELECT id,truck_type,loading_weight,stall_height,created_at,updated_at,approve_status,registration_number,truck_photos,work_zone,tipper,owner FROM vw_truck_details'::text) truck(id integer, truck_type integer, loading_weight double precision, stall_height text, created_at timestamp without time zone, updated_at timestamp without time zone, approve_status text, registration_number text, truck_photos jsonb, work_zone jsonb, tipper boolean, owner jsonb) ON truck.id = book.truck_id
-GROUP BY book.id, truck.id, truck.truck_type, truck.loading_weight, truck.stall_height, truck.created_at, truck.updated_at, truck.approve_status, truck.registration_number, truck.truck_photos, truck.work_zone, truck.tipper, truck.owner;
+  expression: ` 
+  SELECT book.id,
+    book.job_id,
+    truck.owner ->> 'fullName'::text AS fullname,
+    truck.owner ->> 'avatar'::text AS avatar,
+    book.created_at AS booking_datetime,
+        CASE
+            WHEN book.truck_id = truck.id THEN json_build_object('id', truck.id, 'truck_type', truck.truck_type, 'loading_weight', truck.loading_weight, 'stall_height', truck.stall_height, 'created_at', truck.created_at, 'updated_at', truck.updated_at, 'approve_status', truck.approve_status, 'registration_number', string_to_array(regexp_replace(truck.registration_number, '[}{]', '', 'g'), ','), 'truck_photos', truck.truck_photos, 'work_zone', truck.work_zone, 'tipper', truck.tipper, 'owner', truck.owner)
+            ELSE COALESCE('{}'::json)
+        END AS truck
+   FROM booking book
+     LEFT JOIN dblink('truckserver'::text, 'SELECT id,truck_type,loading_weight,stall_height,created_at,updated_at,approve_status,registration_number,truck_photos,work_zone,tipper,owner FROM vw_truck_details'::text) truck(id integer, truck_type integer, loading_weight double precision, stall_height text, created_at timestamp without time zone, updated_at timestamp without time zone, approve_status text, registration_number text, truck_photos jsonb, work_zone jsonb, tipper boolean, owner jsonb) ON truck.id = book.truck_id
+  GROUP BY book.id, truck.id, truck.truck_type, truck.loading_weight, truck.stall_height, truck.created_at, truck.updated_at, truck.approve_status, truck.registration_number, truck.truck_photos, truck.work_zone, truck.tipper, truck.owner;
   `,
 })
 export class VwBooking {

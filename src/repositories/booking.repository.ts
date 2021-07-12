@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { FastifyInstanceToken, getInstanceByToken } from 'fastify-decorators';
-import { FindManyOptions, FindOneOptions, Repository, UpdateManyOptions } from 'typeorm';
-import { Booking, VwMyJobNewList, VwJobWithBookingId } from '../models'
+import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
+import { Booking, VwMyJobNewList, VwJobWithBookingId, VwMyJobDoneList } from '../models'
 import * as  Types from '../controllers/booking.types'
 
 export default class BookingRepository {
@@ -41,6 +41,12 @@ export default class BookingRepository {
   async findNewJob(options: FindManyOptions): Promise<any> {
     const server: any = this.instance
     const jobRepository: Repository<VwMyJobNewList> = server?.db?.vwMyJobNewList;
+    return jobRepository.findAndCount(options)
+  }
+
+  async findDoneJob(options: FindManyOptions): Promise<any> {
+    const server: any = this.instance
+    const jobRepository: Repository<VwMyJobDoneList> = server?.db?.vwMyJobDoneList;
     return jobRepository.findAndCount(options)
   }
 
