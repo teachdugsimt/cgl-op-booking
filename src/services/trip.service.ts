@@ -64,10 +64,10 @@ export default class TripService {
       delete trip.id;
       delete trip.jobId;
       return {
+        ...trip,
         id: newJobId,
         price: Math.round(trip.price * 100) / 100,
         weight: Math.round(trip.totalWeight * 100) / 100,
-        ...trip
       }
     })
 

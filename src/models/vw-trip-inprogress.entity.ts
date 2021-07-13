@@ -157,6 +157,7 @@ export class VwTripInprogress {
     id: number
     userId?: string
     fullName: string
+    companyName: string
     email: string
     mobileNo: string
     avatar: {
@@ -202,6 +203,9 @@ export class VwTripInprogress {
     // this.jobId = security.encodeUserId(+this.jobId);
     // this.carrierId = security.encodeUserId(+this.carrierId);
     this.owner.userId = security.encodeUserId(+this.owner.id);
+    if (this.owner?.fullName) {
+      this.owner.companyName = this.owner.fullName
+    }
   }
 
 }
