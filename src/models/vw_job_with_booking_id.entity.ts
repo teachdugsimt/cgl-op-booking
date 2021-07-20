@@ -69,6 +69,7 @@ export class VwJobWithBookingId {
   owner: {
     id: number
     userId: string
+    companyName: string | null
     fullName: string
     email: string
     mobileNo: string
@@ -91,7 +92,7 @@ export class VwJobWithBookingId {
         "avatar": { object: string | null }
         "fullName": string | null
         "mobileNo": string | null
-        "companyName": string
+        "companyName": string | null
       }
       "tipper": boolean
       "work_zone": Array<{
@@ -137,6 +138,7 @@ export class VwJobWithBookingId {
     if (this.truckType) this.truckType = this.truckType.toString()
     if (this.from.lat) this.from.lat = this.from.lat.toString()
     if (this.from.lng) this.from.lng = this.from.lng.toString()
+    this.owner.companyName = this.owner.fullName || ''
     if (tmp && Array.isArray(tmp) && tmp.length > 0)
       tmp.map(e => {
         e.id = e.id ? security.encodeUserId(+e.id) : '';

@@ -77,6 +77,7 @@ export class VwBooking {
   @AfterLoad()
   encodeFields() {
     this.id = security.encodeUserId(+this.id);
+    this.truck.owner.companyName = this.truck.owner.fullName || ''
     // this.jobId = security.encodeUserId(+this.jobId);
   }
 

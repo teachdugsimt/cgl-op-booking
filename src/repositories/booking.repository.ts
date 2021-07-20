@@ -40,7 +40,9 @@ export default class BookingRepository {
 
   async findNewJob(options: FindManyOptions): Promise<any> {
     const server: any = this.instance
+    console.log("Server in repository :: ", server)
     const jobRepository: Repository<VwMyJobNewList> = server?.db?.vwMyJobNewList;
+    console.log("Repository :: ", jobRepository)
     return jobRepository.findAndCount(options)
   }
 
