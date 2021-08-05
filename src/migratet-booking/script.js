@@ -591,6 +591,20 @@ const updateCarrierIdGroupNewUser = async () => {
 }
 
 
+const updateSequenceAllTable = () => {
+  const connectNew = new Pool(newConnection)
+  const connectNewDB = await connectNew.connect();
+  const sqlUpdateSeqBooking = `SELECT setval('booking_seq', (select count(*) from booking), true);`
+  const sqlUpdateSeqJobCarrier = `SELECT setval('job_carrier_seq', (select count(*) from job_carrier), true);`
+  const sqlUpdateSeqTrip = `SELECT setval('trip_seq', (select count(*) from trip), true);`
+  // 
+  await connectNewDB.query(sqlUpdateSeqBooking);
+  await connectNewDB.query(sqlUpdateSeqJobCarrier);
+  await connectNewDB.query(sqlUpdateSeqTrip);
+  console.log('Update seq all table finish !!')
+  return true;
+}
+
 
 
 const main = async () => {
@@ -602,6 +616,7 @@ const main = async () => {
     await runMigrateBookingService()
 
     await updateCarrierIdGroupNewUser()
+    await updateSequenceAllTable()
     return true
   } catch (error) {
     console.log("Error :: ", error)
