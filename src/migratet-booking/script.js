@@ -535,7 +535,7 @@ GROUP BY jc.id, jc.job_id, jc.carrier_id;
    LEFT JOIN job_carrier jc ON jc.id = t.job_carrier_id
    LEFT JOIN dblink('jobserver'::text, 'SELECT id, product_type_id, product_name, price, price_type, truck_type, weight, required_truck_amount, loading_address, loading_datetime, loading_contact_name, loading_contact_phone, loading_latitude, loading_longitude, owner, shipments FROM vw_job_list'::text) vwjob(id integer, product_type_id integer, product_name text, price numeric, price_type text, truck_type text, weight numeric, required_truck_amount integer, loading_address text, loading_datetime text, loading_contact_name text, loading_contact_phone text, loading_latitude text, loading_longitude text, owner jsonb, shipments jsonb) ON vwjob.id = jc.job_id
    LEFT JOIN dblink('truckserver'::text, 'SELECT id, approve_status, loading_weight, registration_number, stall_height, quotation_number, tipper, truck_type, created_at, updated_at, carrier_id, owner, work_zone FROM vw_truck_list'::text) vwtruck(id integer, approve_status character varying, loading_weight numeric, registration_number text[], stall_height character varying, quotation_number integer, tipper boolean, truck_type integer, created_at timestamp without time zone, updated_at timestamp without time zone, carrier_id integer, owner jsonb, work_zone jsonb) ON vwtruck.id = t.truck_id
-GROUP BY t.id, t.job_carrier_id, jc.job_id, vwjob.product_type_id, vwjob.truck_type, vwjob.weight, vwjob.required_truck_amount, vwjob.loading_address, vwjob.loading_datetime, vwjob.loading_contact_name, vwjob.loading_contact_phone, vwjob.loading_latitude, vwjob.loading_longitude, vwjob.owner, vwjob.shipments, vwjob.product_name, vwjob.price, vwjob.price_type;`
+GROUP BY t.truck_id, t.status, t.id, t.job_carrier_id, jc.job_id, vwjob.product_type_id, vwjob.truck_type, vwjob.weight, vwjob.required_truck_amount, vwjob.loading_address, vwjob.loading_datetime, vwjob.loading_contact_name, vwjob.loading_contact_phone, vwjob.loading_latitude, vwjob.loading_longitude, vwjob.owner, vwjob.shipments, vwjob.product_name, vwjob.price, vwjob.price_type;`
 
   await connectNewDB.query(sqlCreateViewBooking);
   await connectNewDB.query(sqlCreateViewJobBookingTruckList);
@@ -591,7 +591,7 @@ const updateCarrierIdGroupNewUser = async () => {
 }
 
 
-const updateSequenceAllTable = () => {
+const updateSequenceAllTable = async() => {
   const connectNew = new Pool(newConnection)
   const connectNewDB = await connectNew.connect();
   const sqlUpdateSeqBooking = `SELECT setval('booking_seq', (select count(*) from booking), true);`
