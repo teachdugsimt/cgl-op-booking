@@ -1,6 +1,3 @@
-import { Service, Initializer, Destructor } from 'fastify-decorators';
-import { FindManyOptions } from 'typeorm';
-import TripRepository from '../repositories/trip.repository';
 import VwTripInprogressRepository from '../repositories/vw-trip-inprogress.repository';
 import Security from 'utility-layer/dist/security'
 
@@ -11,16 +8,12 @@ interface FindTripProps {
   sortBy?: string
 }
 
-const tripRepository = new TripRepository();
 const security = new Security();
 const vwTripInprogressRepository = new VwTripInprogressRepository()
 
 const camelToSnakeCase = (str: string) => str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
 
-@Service()
 export default class TripService {
-  @Initializer()
-  async init(): Promise<void> { }
 
   async getTrips(userId: string, filter: FindTripProps): Promise<any> {
     let {
@@ -77,6 +70,4 @@ export default class TripService {
     }
   }
 
-  @Destructor()
-  async destroy(): Promise<void> { }
 }

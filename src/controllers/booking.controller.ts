@@ -6,9 +6,9 @@ import * as Types from './booking.types'
 import Utility from 'utility-layer/dist/security'
 const util = new Utility();
 @Controller({ route: '/api/v1/booking' })
-export default class PingController {
+export default class BookingController {
 
-  private bookingService = getInstanceByToken<BookingService>(BookingService);
+  public bookingService = getInstanceByToken<BookingService>(BookingService);
 
   @POST({
     url: '/',
