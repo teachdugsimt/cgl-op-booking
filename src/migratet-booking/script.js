@@ -415,7 +415,7 @@ GROUP BY book.id, job.id, job.product_type_id, job.product_name, job.truck_type,
         GROUP BY job.id, job.user_id, job.product_type_id, job.product_name, job.truck_type, job.weight, job.required_truck_amount, job.loading_contact_name, job.loading_datetime, job.loading_contact_phone, job.loading_latitude, job.loading_longitude, job.shipments, job.owner, job.price, job.price_type, job.status, job.loading_address) listall
 GROUP BY listall.id, listall.user_id, listall.loading_datetime, listall.product_type_id, listall.product_name, listall.truck_type, listall.weight, listall.required_truck_amount, listall."to", listall.owner, listall.status, listall.requester_type, listall.requester_user_id, listall.accepter_user_id, listall.price, listall.price_type, listall."from", listall.job_status;`
 
-  const sqlCreateViewMyJobNewList = `CREATE VIEW vw_my_job_new_list AS SELECT listall.id,
+  const sqlCreateViewMyJobNewList = `CREATE VIEW vw_my_job_new_list AS  SELECT listall.id,
   listall.user_id,
   listall.product_type_id,
   listall.product_name,
@@ -476,8 +476,8 @@ GROUP BY listall.id, listall.user_id, listall.loading_datetime, listall.product_
           job.tipper,
           job.price,
           job.price_type
-         FROM dblink('jobserver'::text, 'SELECT id,user_id,product_type_id,product_name,truck_type,weight,required_truck_amount,loading_address,loading_datetime,loading_contact_name,loading_contact_phone,loading_latitude,loading_longitude,tipper,price,price_type,owner,shipments,quotations FROM vw_job_list'::text) job(id integer, user_id integer, product_type_id integer, product_name text, truck_type integer, weight numeric, required_truck_amount integer, loading_address text, loading_datetime timestamp without time zone, loading_contact_name text, loading_contact_phone text, loading_latitude double precision, loading_longitude double precision, tipper boolean, price numeric, price_type text, owner jsonb, shipments jsonb, quotations jsonb)
-        WHERE NOT (job.id IN ( SELECT booking.job_id
+         FROM dblink('jobserver'::text, 'SELECT id,user_id,product_type_id,product_name,truck_type,status,weight,required_truck_amount,loading_address,loading_datetime,loading_contact_name,loading_contact_phone,loading_latitude,loading_longitude,tipper,price,price_type,owner,shipments,quotations FROM vw_job_list'::text) job(id integer, user_id integer, product_type_id integer, product_name text, truck_type integer, status text, weight numeric, required_truck_amount integer, loading_address text, loading_datetime timestamp without time zone, loading_contact_name text, loading_contact_phone text, loading_latitude double precision, loading_longitude double precision, tipper boolean, price numeric, price_type text, owner jsonb, shipments jsonb, quotations jsonb)
+        WHERE job.status = 'NEW'::text AND NOT (job.id IN ( SELECT booking.job_id
                  FROM booking))
         GROUP BY job.id, job.user_id, job.product_type_id, job.product_name, job.truck_type, job.weight, job.required_truck_amount, job.tipper, job.loading_contact_name, job.loading_datetime, job.loading_contact_phone, job.loading_latitude, job.loading_longitude, job.shipments, job.owner, job.price, job.price_type, job.quotations, job.loading_address) listall
 GROUP BY listall.id, listall.user_id, listall.loading_datetime, listall.product_type_id, listall.product_name, listall.truck_type, listall.weight, listall.required_truck_amount, listall."to", listall.owner, listall.status, listall.requester_type, listall.requester_user_id, listall.accepter_user_id, listall.price, listall.price_type, listall."from", listall.tipper, listall.quotations;
