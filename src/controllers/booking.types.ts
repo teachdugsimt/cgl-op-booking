@@ -19,7 +19,22 @@ export interface MyJobFilterList {
   page?: number | string
   rowsPerPage?: number | string
   sortBy?: string | undefined
-  type: number
+  type?: number
+  where?: any
+  searchText?: string | null
+}
+
+
+export interface Transportation {
+  descending?: boolean | undefined
+  page?: number | string
+  rowsPerPage?: number | string
+  sortBy?: string | undefined
+  type?: number
+  realPage?: number
+  realTake?: number
+  searchText?: string | undefined | null
+  where?: any
 }
 
 export interface FullUpdateBooking {

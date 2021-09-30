@@ -194,3 +194,42 @@ export const getJobWithBookingId: FastifySchema = {
     }
   }
 }
+
+
+
+
+export const getTransportation: FastifySchema = {
+  headers: {
+    type: 'object',
+    properties: {
+      authorization: { type: 'string' }
+    },
+    require: ['authorization']
+  },
+  querystring: {
+    type: 'object',
+    properties: {
+      descending: { type: 'boolean', nullable: true },
+      page: { type: 'number', nullable: true },
+      rowsPerPage: { type: 'number', nullable: true },
+      sortBy: { type: 'string', nullable: true },
+      type: { type: 'number', nullable: true },
+      searchText: { type: 'string', nullable: true },
+      where: { type: 'object', properties: {}, additionalProperties: false }
+    },
+    additionalProperties: false
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        data: { type: 'array' },
+        totalElements: { type: 'number' },
+        size: { type: 'number' },
+        numberOfElements: { type: 'number' },
+        currentPage: { type: 'number' },
+        totalPages: { type: 'number' },
+      },
+    }
+  }
+}

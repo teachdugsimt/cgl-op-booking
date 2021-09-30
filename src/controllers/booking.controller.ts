@@ -1,7 +1,11 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { Controller, GET, POST, PATCH, getInstanceByToken } from 'fastify-decorators';
 import BookingService from '../services/booking.service';
-import { bookingSchema, bookingUpdateSchema, getMyJobSchema, getJobWithBookingId } from './booking.schema';
+import TransportationService from '../services/transportation.service';
+import {
+  bookingSchema, bookingUpdateSchema, getMyJobSchema,
+  getJobWithBookingId, getTransportation
+} from './booking.schema';
 import * as Types from './booking.types'
 import Utility from 'utility-layer/dist/security'
 const util = new Utility();
@@ -9,6 +13,7 @@ const util = new Utility();
 export default class BookingController {
 
   public bookingService = getInstanceByToken<BookingService>(BookingService);
+  public transportationService = getInstanceByToken<TransportationService>(TransportationService);
 
   @POST({
     url: '/',
@@ -87,6 +92,20 @@ export default class BookingController {
 
     console.log("User id :: ", userId)
     const result = await this.bookingService.findJobByBookingId(bookingId)
+    return { ...result }
+  }
+
+
+
+  @GET({
+    url: '/transportation',
+    options: {
+      schema: getTransportation
+    }
+  })
+  async getTransportation(req: FastifyRequest<{ Querystring: Types.MyJobFilterList, Headers: { authorization: string } }>, reply: FastifyReply): Promise<any> {
+    console.log("Query :: ", req.query.where)
+    const result = await this.transportationService.findTransportationList(req.query)
     return { ...result }
   }
 
