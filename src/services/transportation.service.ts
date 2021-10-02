@@ -1,8 +1,11 @@
 import { Service, Initializer, Destructor } from 'fastify-decorators';
 import * as Types from '../controllers/booking.types'
-import { FindManyOptions } from 'typeorm'
+import { FindManyOptions, IsNull, Not, Like } from 'typeorm'
 import TransportationRepository from '../repositories/vw-transportation.repository';
 import TransportationRepositoryV2 from '../repositories/vw-transportation-v2.repository';
+import Utility from 'utility-layer/dist/security'
+
+const util = new Utility();
 
 const transportationRepo = new TransportationRepository()
 const transportationRepoV2 = new TransportationRepositoryV2()
@@ -45,59 +48,61 @@ export default class TransportationService {
     }
 
     let response: any
-    if (searchText) {
 
-
-      // console.log("Search Text :: ", searchText)
-      // console.time("GetTransportation Start") 
-      // // 2.527s => ไม้แบบ
-      // // 1.580s => ไม้
-      // // 1.556s => ของใช้
-      // // 1.767s, 1.688s, 1.636s => ศรีภูมิ
-      // const options = {
-      //   fullTextSearch: `${searchText}:*`,
-      //   page: realPage,
-      //   rowsPerPage: realTake,
-      //   ...(sortBy ? { sortBy: camelToSnakeCase(sortBy) } : undefined),
-      //   ...(descending ? { descending: descending ? 'DESC' : 'ASC' } : undefined),
-      // }
-      // response = await transportationRepo.fullTextSearch(options);
-      // console.timeEnd("GetTransportation Start")
-
-
-
-      const filterOptions = generateFilterSearchTextV2(searchText)
-      console.log("Filter Options :: ", filterOptions)
-      console.time("GetTransportationV2 Start")
-      // 1.506s => ไม้แบบ
-      // 1.647s => ไม้
-      // 1.517s => ของใช้
-      // 1.802s, 1.628s, 1.616s => ศรีภูมิ
-      const findOptions: FindManyOptions = {
-        take: realTake,
-        skip: realPage,
-        where: filterOptions,
-        order: {
-          [camelToSnakeCase(sortBy)]: descending ? 'DESC' : 'ASC'
-        },
-      };
-      response = await transportationRepoV2.findTransportation(findOptions)
-      console.timeEnd("GetTransportationV2 Start")
-
-
-    } else {
-      const filter: any = where && typeof where == 'string' ? JSON.parse(where) : (where ?? {})
-      console.log("Filter :: ", filter)
-      const findOptions: FindManyOptions = {
-        take: realTake,
-        skip: realPage,
-        where: filter,
-        order: {
-          [camelToSnakeCase(sortBy)]: descending ? 'DESC' : 'ASC'
-        },
-      };
-      response = await transportationRepoV2.findTransportation(findOptions)
-    }
+    // if (searchText) {
+    // *************** Zone 1 ***************** //
+    // console.log("Search Text :: ", searchText)
+    // console.time("GetTransportation Start") 
+    // // 2.527s => ไม้แบบ
+    // // 1.580s => ไม้
+    // // 1.556s => ของใช้
+    // // 1.767s, 1.688s, 1.636s => ศรีภูมิ
+    // const options = {
+    //   fullTextSearch: `${searchText}:*`,
+    //   page: realPage,
+    //   rowsPerPage: realTake,
+    //   ...(sortBy ? { sortBy: camelToSnakeCase(sortBy) } : undefined),
+    //   ...(descending ? { descending: descending ? 'DESC' : 'ASC' } : undefined),
+    // }
+    // response = await transportationRepo.fullTextSearch(options);
+    // console.timeEnd("GetTransportation Start")
+    // *************** Zone 1 ***************** //
+    // *************** Zone 2 ***************** //
+    // const filterOptions = generateFilterSearchTextV2(searchText)
+    // console.log("Filter Options :: ", filterOptions)
+    // console.time("GetTransportationV2 Start")
+    // // 1.506s => ไม้แบบ
+    // // 1.647s => ไม้
+    // // 1.517s => ของใช้
+    // // 1.802s, 1.628s, 1.616s => ศรีภูมิ
+    // const findOptions: FindManyOptions = {
+    //   take: realTake,
+    //   skip: realPage,
+    //   where: filterOptions,
+    //   order: {
+    //     [camelToSnakeCase(sortBy)]: descending ? 'DESC' : 'ASC'
+    //   },
+    // };
+    // response = await transportationRepoV2.findTransportation(findOptions)
+    // console.timeEnd("GetTransportationV2 Start")
+    // *************** Zone 2 ***************** //
+    // } else {
+    const filter: any = where && typeof where == 'string' ? JSON.parse(where) : (where ?? {})
+    if (filter?.id) filter.id = util.decodeUserId(filter.id)
+    if (filter?.trips && filter.trips == "NOT_NULL") filter.trips = Not(IsNull())
+    if (filter?.trips && filter.trips == "NULL") filter.trips = IsNull()
+    if (filter?.fullTextSearch) filter.fullTextSearch = Like(`%${filter.fullTextSearch}%`)
+    console.log("Filter :: ", filter)
+    const findOptions: FindManyOptions = {
+      take: realTake,
+      skip: realPage,
+      where: filter,
+      order: {
+        [camelToSnakeCase(sortBy)]: descending ? 'DESC' : 'ASC'
+      },
+    };
+    response = await transportationRepoV2.findTransportation(findOptions)
+    // }
 
 
 

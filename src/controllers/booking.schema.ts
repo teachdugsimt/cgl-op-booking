@@ -213,8 +213,6 @@ export const getTransportation: FastifySchema = {
       page: { type: 'number', nullable: true },
       rowsPerPage: { type: 'number', nullable: true },
       sortBy: { type: 'string', nullable: true },
-      type: { type: 'number', nullable: true },
-      searchText: { type: 'string', nullable: true },
       where: { type: 'object', properties: {}, additionalProperties: false }
     },
     additionalProperties: false
