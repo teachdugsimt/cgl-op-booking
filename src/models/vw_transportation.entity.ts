@@ -173,9 +173,9 @@ export class VwTransportation {
   @ViewColumn({ name: 'requester_type' })
   requesterType: number
   @ViewColumn({ name: 'requester_user_id' })
-  requesterUserId: number
+  requesterUserId: string
   @ViewColumn({ name: 'accepter_user_id' })
-  accepterUserId: number
+  accepterUserId: string
 
   @ViewColumn({ name: 'price' })
   price: number
@@ -193,6 +193,10 @@ export class VwTransportation {
   encodeFields() {
     this.id = security.encodeUserId(+this.id);
     this.owner.userId = security.encodeUserId(+this.owner.id);
+    if (this.requesterUserId)
+      this.requesterUserId = security.encodeUserId(+this.requesterUserId);
+    if (this.accepterUserId)
+      this.accepterUserId = security.encodeUserId(+this.accepterUserId);
     const tmp = this.quotations
     if (tmp && Array.isArray(tmp) && tmp.length > 0)
       tmp.map(e => {

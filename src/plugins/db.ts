@@ -4,7 +4,7 @@ import { createConnection } from 'typeorm';
 import {
   Booking, JobCarrier, Trip, VwTripInprogress, VwMyJobNewList,
   VwJobWithBookingId, VwTripWithTruckDetail, VwMyJobDoneList,
-  VwTransportation
+  VwTransportation, VwTransportationV2
 } from '../models';
 
 export default fp(async server => {
@@ -22,6 +22,7 @@ export default fp(async server => {
       vwJobWithBookingId: connection.getRepository(VwJobWithBookingId),
       vwTripWithTruckDetail: connection.getRepository(VwTripWithTruckDetail),
       vwTransportation: connection.getRepository(VwTransportation),
+      vwTransportationV2: connection.getRepository(VwTransportationV2),
     });
   } catch (error) {
     console.log(error);
