@@ -32,7 +32,7 @@ export default class TransportationService {
   }
 
   async findTransportationList(query: Types.Transportation) {
-    let { rowsPerPage = 10, page = 1, descending = true, sortBy = 'id', searchText, where } = query;
+    let { rowsPerPage = 10, page = 1, descending = true, sortBy = 'id', where } = query;
 
     let realPage: number;
     let realTake: number;
