@@ -230,3 +230,53 @@ export const getTransportation: FastifySchema = {
     }
   }
 }
+
+export const addPaymentSchema: FastifySchema = {
+  headers: {
+    type: 'object',
+    properties: {
+      authorization: { type: 'string' }
+    },
+    require: ['authorization']
+  },
+  body: {
+    type: 'object',
+    properties: {
+      tripId: { types: "number" },
+    },
+    require: ['tripId'],
+    additionalProperties: true
+  },
+  response: {
+    200: {
+      type: 'boolean'
+    }
+  }
+}
+
+
+export const getPaymentSchema: FastifySchema = {
+  headers: {
+    type: 'object',
+    properties: {
+      authorization: { type: 'string' }
+    },
+    require: ['authorization']
+  },
+  querystring: {
+    type: 'object',
+    properties: {
+      id: { types: "number" },
+    },
+    require: ['id'],
+    additionalProperties: true
+  },
+  response: {
+    200: {
+      type: 'object', properties: {
+        
+      },
+      additionalProperties: true
+    }
+  }
+}

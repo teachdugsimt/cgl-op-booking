@@ -4,11 +4,14 @@ import BookingService from '../services/booking.service';
 import TransportationService from '../services/transportation.service';
 import {
   bookingSchema, bookingUpdateSchema, getMyJobSchema,
-  getJobWithBookingId, getTransportation
+  getJobWithBookingId, getTransportation, addPaymentSchema,
+  getPaymentSchema
 } from './booking.schema';
 import * as Types from './booking.types'
+import PaymentRepository from '../repositories/payment.repository';
 import Utility from 'utility-layer/dist/security'
 const util = new Utility();
+const paymentRepo = new PaymentRepository()
 @Controller({ route: '/api/v1/booking' })
 export default class BookingController {
 
@@ -107,6 +110,29 @@ export default class BookingController {
     console.log("Query :: ", req.query.where)
     const result = await this.transportationService.findTransportationList(req.query)
     return { ...result }
+  }
+
+  @POST({
+    url: '/payment',
+    options: {
+      schema: addPaymentSchema
+    }
+  })
+  async addPayment(req: FastifyRequest<{ Body: { tripId: number }, Headers: { authorization: string } }>, reply: FastifyReply): Promise<any> {
+    const result = await paymentRepo.add({ tripId: req.body.tripId })
+    return result ? true : false
+  }
+
+  @GET({
+    url: '/payment',
+    options: {
+      schema: getPaymentSchema
+    }
+  })
+  async getPayment(req: FastifyRequest<{ Querystring: { id: number }, Headers: { authorization: string } }>, reply: FastifyReply): Promise<any> {
+    const result = await paymentRepo.findAndCount({ where: { id: req.query.id } })
+    console.log("Result :: ", result)
+    return result
   }
 
 }
