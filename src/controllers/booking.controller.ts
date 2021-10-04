@@ -5,7 +5,7 @@ import TransportationService from '../services/transportation.service';
 import {
   bookingSchema, bookingUpdateSchema, getMyJobSchema,
   getJobWithBookingId, getTransportation, addPaymentSchema,
-  getPaymentSchema
+  getPaymentSchema, getTransportationId
 } from './booking.schema';
 import * as Types from './booking.types'
 import PaymentRepository from '../repositories/payment.repository';
@@ -109,6 +109,19 @@ export default class BookingController {
   async getTransportation(req: FastifyRequest<{ Querystring: Types.MyJobFilterList, Headers: { authorization: string } }>, reply: FastifyReply): Promise<any> {
     console.log("Query :: ", req.query.where)
     const result = await this.transportationService.findTransportationList(req.query)
+    return { ...result }
+  }
+
+  @GET({
+    url: '/transportation/:jobId',
+    options: {
+      schema: getTransportationId
+    }
+  })
+  async getTransportationId(req: FastifyRequest<{ Params: { jobId: string }, Headers: { authorization: string } }>, reply: FastifyReply): Promise<any> {
+    console.log("Params :: ", req.params.jobId)
+    const result = await this.transportationService.findTransportationId(req.params.jobId)
+    console.log("Result get job id :: ", result)
     return { ...result }
   }
 

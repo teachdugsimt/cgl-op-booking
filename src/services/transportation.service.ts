@@ -1,6 +1,6 @@
 import { Service, Initializer, Destructor } from 'fastify-decorators';
 import * as Types from '../controllers/booking.types'
-import { FindManyOptions, IsNull, Not, Like } from 'typeorm'
+import { FindManyOptions, IsNull, Not, Like, FindOneOptions } from 'typeorm'
 import TransportationRepository from '../repositories/vw-transportation.repository';
 import TransportationRepositoryV2 from '../repositories/vw-transportation-v2.repository';
 import Utility from 'utility-layer/dist/security'
@@ -116,6 +116,14 @@ export default class TransportationService {
       totalPages: Math.ceil((response[1] || 0) / (+rowsPerPage))
     }
     return response_final
+  }
+
+  async findTransportationId(jobId: string) {
+    const parseJobId = util.decodeUserId(jobId)
+    const findOptions: FindOneOptions = {
+      where: { id: parseJobId },
+    };
+    return transportationRepoV2.findOne(findOptions)
   }
 
   @Destructor()
