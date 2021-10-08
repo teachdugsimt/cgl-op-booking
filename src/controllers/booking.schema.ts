@@ -230,3 +230,136 @@ export const getTransportation: FastifySchema = {
     }
   }
 }
+
+export const getTransportationId: FastifySchema = {
+  headers: {
+    type: 'object',
+    properties: {
+      authorization: { type: 'string' }
+    },
+    require: ['authorization']
+  },
+  params: {
+    jobId: { type: 'string' },
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        userId: { type: 'string' },
+        productTypeId: { type: 'number' },
+        productName: { type: 'string' },
+        truckType: { type: 'string' }, //? should be number if mobx parse error, check here
+        weight: { type: 'number' },
+        requiredTruckAmount: { type: 'number' },
+        loadingDatetime: { type: 'string' },
+        from: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+            dateTime: { type: 'string' },
+            contactName: { type: 'string' },
+            contactMobileNo: { type: 'string' },
+            lat: { type: 'string' },
+            lng: { type: 'string' },
+          }
+        },
+        to: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              dateTime: { type: 'string' },
+              contactName: { type: 'string' },
+              contactMobileNo: { type: 'string' },
+              lat: { type: 'string' },
+              lng: { type: 'string' },
+            }
+          }
+        },
+        owner: {
+          type: 'object',
+          properties: {
+            id: { type: 'number' },
+            fullName: { type: 'string' },
+            companyName: { type: 'string' },
+            email: { type: 'string' },
+            mobileNo: { type: 'string' },
+            avatar: {
+              type: 'object',
+              properties: {
+                object: { type: 'string' }
+              }
+            },
+            userId: { type: 'string' }
+          }
+        },
+        trips: { type: 'array', nullable: true },
+        status: {
+          type: 'string',
+          enum: ['NEW', 'INPROGRESS', 'CANCELLED', 'DONE', 'EXPIRED']
+        },
+        tipper: { type: 'boolean' },
+        price: { type: 'string' },
+        priceType: {
+          type: 'string',
+          enum: ['PER_TRIP', 'PER_TON']
+        },
+        createdAt: { type: 'string' }
+      },
+      additionalProperties: true
+    }
+  }
+}
+
+export const addPaymentSchema: FastifySchema = {
+  headers: {
+    type: 'object',
+    properties: {
+      authorization: { type: 'string' }
+    },
+    require: ['authorization']
+  },
+  body: {
+    type: 'object',
+    properties: {
+      tripId: { types: "number" },
+    },
+    require: ['tripId'],
+    additionalProperties: true
+  },
+  response: {
+    200: {
+      type: 'boolean'
+    }
+  }
+}
+
+
+export const getPaymentSchema: FastifySchema = {
+  headers: {
+    type: 'object',
+    properties: {
+      authorization: { type: 'string' }
+    },
+    require: ['authorization']
+  },
+  querystring: {
+    type: 'object',
+    properties: {
+      id: { types: "number" },
+    },
+    require: ['id'],
+    additionalProperties: true
+  },
+  response: {
+    200: {
+      type: 'object', properties: {
+
+      },
+      additionalProperties: true
+    }
+  }
+}

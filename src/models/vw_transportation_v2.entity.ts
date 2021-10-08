@@ -29,7 +29,7 @@ const security = new Security();
           job.weight,
           job.required_truck_amount,
           job.loading_datetime,
-          json_build_object('name', job.loading_address, 'datetime', job.loading_datetime, 'contact_name', job.loading_contact_name, 'contact_mobile_no', job.loading_contact_phone, 'lat', job.loading_latitude, 'lng', job.loading_longitude)::jsonb AS "from",
+          json_build_object('name', job.loading_address, 'dateTime', job.loading_datetime, 'contactName', job.loading_contact_name, 'contactMobileNo', job.loading_contact_phone, 'lat', job.loading_latitude, 'lng', job.loading_longitude)::jsonb AS "from",
           job.shipments AS "to",
           job.owner,
           json_agg(jsonb_build_object('id', trip.id, 'jobCarrierId', jc.id, 'weight', trip.weight, 'price', trip.price, 'status', trip.status, 'createdAt', trip.created_at, 'createdUser', trip.created_user, 'truck', json_build_object('id', trucky.id, 'approveStatus', trucky.approve_status, 'loadingWeight', trucky.loading_weight, 'registrationNumber', trucky.registration_number, 'stallHeight', trucky.stall_height, 'tipper', trucky.tipper, 'truckType', trucky.truck_type, 'createdAt', trucky.created_at, 'updatedAt', trucky.updated_at, 'carrierId', trucky.carrier_id, 'truckPhotos', trucky.truck_photos, 'workZones', trucky.work_zone, 'owner', trucky.owner)))::jsonb AS trips,
@@ -100,6 +100,9 @@ export class VwTransportationV2 {
     dateTime: string,
     contactName: string,
     contactMobileNo: string,
+    datetime: string | undefined,
+    contact_name: string | undefined,
+    contact_mobile_no: string | undefined,
     lat: string,
     lng: string,
   }
@@ -191,6 +194,13 @@ export class VwTransportationV2 {
   encodeFields() {
     this.id = security.encodeUserId(+this.id);
     this.owner.userId = security.encodeUserId(+this.owner.id);
+
+    this.from.dateTime = this.from.datetime || ''
+    this.from.contactName = this.from?.contact_name || ''
+    this.from.contactMobileNo = this.from?.contact_mobile_no || ''
+    delete this.from.datetime
+    delete this.from.contact_name
+    delete this.from.contact_mobile_no
 
     const tmp = this.trips
     if (tmp && Array.isArray(tmp) && tmp.length > 0)
