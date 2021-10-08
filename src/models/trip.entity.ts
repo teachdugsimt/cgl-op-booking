@@ -73,6 +73,9 @@ export class Trip {
   @Column("boolean", { name: "is_deleted", default: () => "false" })
   isDeleted: boolean;
 
+  @Column("date", { name: "start_date", nullable: true })
+  startDate: string | null;
+
   @BeforeInsert()
   @BeforeUpdate()
   updateDateTime() {

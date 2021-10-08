@@ -41,4 +41,11 @@ export default class TripRepository {
     return tripRepository.save(tripRepository.create(tripData));
   }
 
+  async delete(id: number): Promise<any> {
+    return this.update(id, {
+      isDeleted: true,
+      status: 'REJECTED',
+    });
+  }
+
 }
