@@ -118,9 +118,9 @@ export default class BookingController {
       schema: getTransportationId
     }
   })
-  async getTransportationId(req: FastifyRequest<{ Params: { jobId: string }, Headers: { authorization: string } }>, reply: FastifyReply): Promise<any> {
+  async getTransportationId(req: FastifyRequest<{ Params: { jobId: string }, Querystring: { isDeleted: boolean | null }, Headers: { authorization: string } }>, reply: FastifyReply): Promise<any> {
     console.log("Params :: ", req.params.jobId)
-    const result = await this.transportationService.findTransportationId(req.params.jobId)
+    const result = await this.transportationService.findTransportationId(req.params.jobId, req.query.isDeleted)
     console.log("Result get job id :: ", result)
     return { ...result }
   }
