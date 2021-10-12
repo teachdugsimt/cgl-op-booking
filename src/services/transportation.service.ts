@@ -118,12 +118,19 @@ export default class TransportationService {
     return response_final
   }
 
-  async findTransportationId(jobId: string) {
+  async findTransportationId(jobId: string, isDeleted: boolean | null) {
     const parseJobId = util.decodeUserId(jobId)
     const findOptions: FindOneOptions = {
       where: { id: parseJobId },
     };
-    return transportationRepoV2.findOne(findOptions)
+    const result = await transportationRepoV2.findOne(findOptions)
+    if (typeof isDeleted == 'boolean') {
+      if (result.trips && result.trips.length > 0) {
+        result.trips = result.trips.filter((e: any) => e.isDeleted == isDeleted)
+      }
+    }
+    console.log("Result  :: ", result)
+    return result
   }
 
   @Destructor()

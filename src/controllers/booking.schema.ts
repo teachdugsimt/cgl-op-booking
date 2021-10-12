@@ -242,6 +242,9 @@ export const getTransportationId: FastifySchema = {
   params: {
     jobId: { type: 'string' },
   },
+  querystring: {
+    isDeleted: { type: 'boolean', nullable: true },
+  },
   response: {
     200: {
       type: 'object',
