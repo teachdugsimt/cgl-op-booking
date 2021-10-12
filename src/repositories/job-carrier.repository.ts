@@ -35,4 +35,20 @@ export default class JobCarrierRepository {
     return jobCarrierRepository.save(jobCarrierRepository.create(jobCarrierData));
   }
 
+  async getJobAndTruckIdByJobCarrierId(jobCarrierId: number): Promise<any> {
+    const server: any = this.instance
+    const jobCarrierRepository: Repository<JobCarrier> = server?.db?.jobCarrier;
+    return jobCarrierRepository.query(`
+      SELECT
+        jc.job_id as job_id,
+        t.truck_id as truck_id,
+        t.weight_start as weight_start,
+        t.weight_end as weight_end
+      FROM job_carrier jc
+      INNER JOIN trip t
+        ON t.job_carrier_id = jc.id
+      WHERE
+        t.id = ${jobCarrierId}`);
+  }
+
 }

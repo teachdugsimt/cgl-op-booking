@@ -10,3 +10,6 @@ export * from './vw-trip-with-truck-detail.entity'
 export * from './vw_transportation.entity'
 export * from './payment.entity'
 export * from './vw_transportation_v2.entity'
+export * from './bank-account.entity';
+export * from './payment-carrier.entity';
+export * from './payment-shipper.entity';
