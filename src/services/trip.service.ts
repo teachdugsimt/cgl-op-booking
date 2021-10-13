@@ -188,11 +188,11 @@ export default class TripService {
   }
 
   async bulkTrip(jobId: string, truckIds: ITruckProps[], userId: number): Promise<any> {
-    const truckDate: any = {};
+    const tripDate: any = {};
     const decJobId = security.decodeUserId(jobId);
     const decTruckIds = truckIds.map((truck: ITruckProps) => {
       const decTruckId = security.decodeUserId(truck.id);
-      truckDate[decTruckId] = truck.startDate;
+      tripDate[decTruckId] = truck.startDate;
       return decTruckId;
     });
     const trucks = await truckRepository.findManyById(decTruckIds);
@@ -201,7 +201,7 @@ export default class TripService {
     console.log('trucks :>> ', trucks);
     console.log('carrierIds :>> ', carrierIds);
     console.log('decTruckIds :>> ', decTruckIds);
-    console.log('truckDate :>> ', truckDate);
+    console.log('tripDate :>> ', tripDate);
 
     const uniqueCarrierIds = [...new Set(carrierIds)];
     console.log('uniqueCarrierIds :>> ', uniqueCarrierIds);
@@ -219,7 +219,7 @@ export default class TripService {
         createdAt: new Date(),
         updatedAt: new Date(),
         createdUser: userId.toString(),
-        startDate: truckDate[truck.id]
+        startDate: tripDate[truck.id]
       });
 
       // initial payment shipper
@@ -239,25 +239,30 @@ export default class TripService {
     const carrierIdsNew: Array<number> = [];
     const carrierIdsOld: Array<number> = [];
     const carrierJobIds: Array<number> = [];
-    const carrierTruck: any = {};
     const carrierTruckArray: any = {};
-    const truckDate: any = {};
+    const tripDate: any = {};
+    const truckIdCreated: any[] = [];
 
     const decJobId = security.decodeUserId(jobId);
     const decTruckIds = truckIds.map((truck: ITruckProps) => {
-      truckDate[truck.id] = truck.startDate;
-      return security.decodeUserId(truck.id);
+      const decTruckId = security.decodeUserId(truck.id);
+      tripDate[decTruckId] = truck.startDate;
+      return decTruckId;
     });
     const trucks = await truckRepository.findManyById(decTruckIds);
     trucks.forEach((truck: any) => {
-      carrierIdsNew.push(truck.carrier_id);
-      carrierTruck[`${truck.carrier_id}-${truck.id}`] = truck.id;
+      if (!carrierIdsNew.includes(truck.carrier_id)) {
+        carrierIdsNew.push(truck.carrier_id);
+      }
       if (carrierTruckArray[truck.carrier_id]) {
         carrierTruckArray[truck.carrier_id].push(truck.id);
       } else {
         carrierTruckArray[truck.carrier_id] = [truck.id];
       }
     });
+    console.log('trucks :>> ', trucks);
+    console.log('carrierTruckArray :>> ', carrierTruckArray);
+    console.log('tripDate :>> ', tripDate);
 
     const jobCarriers = await jobCarrierRepository.find({
       select: ['id', 'carrierId'],
@@ -271,20 +276,26 @@ export default class TripService {
       carrierJobIds.push(jc.id);
     });
 
+    console.log('carrierIdsOld :>> ', carrierIdsOld);
+    console.log('carrierIdsNew :>> ', carrierIdsNew);
+
     const carrierIdsDiff = diffArray(carrierIdsOld, carrierIdsNew);
+    console.log('carrierIdsDiff :>> ', carrierIdsDiff);
     if (carrierIdsDiff.length) {
       await Promise.all(
         carrierIdsDiff.map(async (carId: any) => {
           if (carrierTruckArray[carId]) {
+            console.log('carrierTruckArray[carId] :>> ', carrierTruckArray[carId]);
+            truckIdCreated.push(...carrierTruckArray[carId]);
             const jobCarrierData = await jobCarrierRepository.add({ jobId: decJobId, carrierId: carId });
-            carrierTruckArray[carId].map(async (tid: number) => tripRepository.add({
+            return carrierTruckArray[carId].map(async (tid: number) => tripRepository.add({
               jobCarrierId: jobCarrierData.id,
               truckId: tid,
               createdAt: new Date(),
               updatedAt: new Date(),
               createdUser: userId.toString(),
-              startDate: truckDate[tid]
-            }))
+              startDate: tripDate[tid]
+            }));
           }
         })
       );
@@ -300,21 +311,27 @@ export default class TripService {
 
     console.log('jobCarriers :>> ', jobCarriers);
     console.log('trips :>> ', trips);
+    console.log('truckIdCreated :>> ', truckIdCreated);
 
     await Promise.all(
-      trips.map(async (trip: any) => {
-        if (!carrierTruck[`${trip.jobCarrierId}-${trip.truckId}`]) {
-          tripRepository.add({
-            jobCarrierId: trip.jobCarrierId,
-            truckId: trip.truckId,
+      trucks.map(async (truck: any) => {
+        const trip = trips.find((trip: any) => trip.truckId === truck.id);
+        if (!trip && !truckIdCreated.includes(truck.id)) {
+          console.log('truck.id :>> ', truck.id);
+          const jobCarrierId = jobCarriers.find((jc: any) => jc.carrierId === truck.carrier_id);
+          console.log('jobCarrierId :>> ', jobCarrierId);
+          console.log('tripDate[truck.id] :>> ', tripDate[truck.id]);
+          return tripRepository.add({
+            jobCarrierId: jobCarrierId.id,
+            truckId: truck.id,
             createdAt: new Date(),
             updatedAt: new Date(),
             createdUser: userId.toString(),
-            startDate: truckDate[trip.truckId]
+            startDate: tripDate[truck.id]
           });
         }
       })
-    );
+    )
   }
 
   async deleteTripById(tripId: string, userId: number): Promise<void> {
