@@ -4,7 +4,7 @@ import { Connection, createConnection } from 'typeorm';
 import {
   Booking, JobCarrier, Trip, VwTripInprogress, VwMyJobNewList,
   VwJobWithBookingId, VwTripWithTruckDetail, VwMyJobDoneList,
-  VwTransportation, VwTransportationV2, BankAccount, PaymentCarrier, PaymentShipper
+  VwTransportationV2, BankAccount, PaymentCarrier, PaymentShipper
 } from '../models';
 import PaymentConnection from './payment-connection';
 
@@ -26,7 +26,6 @@ export default fp(async server => {
       vwMyJobDoneList: connection.getRepository(VwMyJobDoneList),
       vwJobWithBookingId: connection.getRepository(VwJobWithBookingId),
       vwTripWithTruckDetail: connection.getRepository(VwTripWithTruckDetail),
-      vwTransportation: connection.getRepository(VwTransportation),
       vwTransportationV2: connection.getRepository(VwTransportationV2),
       bankAccount: paymentConnection.getRepository(BankAccount),
       paymentShipper: paymentConnection.getRepository(PaymentShipper),
