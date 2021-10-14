@@ -131,18 +131,18 @@ export class VwTransportationV2 {
 
   @ViewColumn({ name: 'trips' })
   trips: Array<{
-    "id": string
+    "id": string | null
     "price": number | null
     "truck": {
-      "id": string
+      "id": string | null
       "owner": {
         "id": number | null
-        "userId": string
+        "userId": string | null
         "email": string | null
         "avatar": { object: string | null }
         "fullName": string | null
         "mobileNo": string | null
-        "companyName": string
+        "companyName": string | null
       }
       "tipper": boolean
       "carrierId": string | null
@@ -207,12 +207,12 @@ export class VwTransportationV2 {
     const tmp = this.trips
     if (tmp && Array.isArray(tmp) && tmp.length > 0)
       tmp.map(e => {
-        e.id = e?.id ? security.encodeUserId(+e.id) : '';
-        e.truck.id = e?.truck?.id ? security.encodeUserId(+e.truck.id) : '';
-        e.truck.carrierId = e?.truck?.carrierId ? security.encodeUserId(+e.truck.carrierId) : '';
+        e.id = e?.id ? security.encodeUserId(+e.id) : null;
+        e.truck.id = e?.truck?.id ? security.encodeUserId(+e.truck.id) : null;
+        e.truck.carrierId = e?.truck?.carrierId ? security.encodeUserId(+e.truck.carrierId) : null;
         if (e.truck.owner) {
-          e.truck.owner.companyName = e?.truck?.owner?.fullName || ''
-          e.truck.owner.userId = e?.truck?.owner?.id ? security.encodeUserId(+e.truck.owner.id) : ''
+          e.truck.owner.companyName = e?.truck?.owner?.fullName || null
+          e.truck.owner.userId = e?.truck?.owner?.id ? security.encodeUserId(+e.truck.owner.id) : null
         }
       })
   }
