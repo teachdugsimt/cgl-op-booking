@@ -165,7 +165,7 @@ export class VwTransportationV2 {
       "loadingWeight": number | null
       "registrationNumber": string[]
     }
-    "startDate":  string
+    "startDate": string
     "isDeleted": boolean
     "status": "OPEN" | "IN_PROGRESS" | "DONE" | "REJECTED"
     "weight": number | null
@@ -210,8 +210,10 @@ export class VwTransportationV2 {
         e.id = e?.id ? security.encodeUserId(+e.id) : '';
         e.truck.id = e?.truck?.id ? security.encodeUserId(+e.truck.id) : '';
         e.truck.carrierId = e?.truck?.carrierId ? security.encodeUserId(+e.truck.carrierId) : '';
-        e.truck.owner.companyName = e?.truck?.owner?.fullName || ''
-        e.truck.owner.userId = e?.truck?.owner?.id ? security.encodeUserId(+e.truck.owner.id) : ''
+        if (e.truck.owner) {
+          e.truck.owner.companyName = e?.truck?.owner?.fullName || ''
+          e.truck.owner.userId = e?.truck?.owner?.id ? security.encodeUserId(+e.truck.owner.id) : ''
+        }
       })
   }
 
