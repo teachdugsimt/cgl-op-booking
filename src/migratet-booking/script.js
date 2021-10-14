@@ -15,6 +15,21 @@ const newPort = 5432
 
 const newDBUser = 'user_service'
 
+const stgConnection = {
+  host: "cgl-db.cj4ycxviwust.ap-southeast-1.rds.amazonaws.com",
+  user: "postgres",
+  password: "7uZrE546PzCjEV^e^tKpvs43PJTnHN",
+  database: 'booking_service',
+  port: 5432,
+}
+const prodConnection = {
+  host: "cgl-db.cs7ingowcayi.ap-southeast-1.rds.amazonaws.com",
+  user: "postgres",
+  password: "FaOpNg13iRDxxHWR8iOmV=Mx-YHzGI",
+  database: 'booking_service',
+  port: 5432,
+}
+
 const oldConnection = {
   host: oldHost,
   user: oldUser,
@@ -305,9 +320,9 @@ SERVER userserver OPTIONS (user '${newUser}', password '${newPassword}');`;
 }
 
 const createView = async () => {
-  const connectNew = new Pool(newConnection)
+  const connectNew = new Pool(prodConnection)
   const connectNewDB = await connectNew.connect();
-  const sqlCreateViewBooking = `CREATE VIEW vw_booking AS SELECT book.id,
+  const sqlCreateViewBooking = `CREATE OR REPLACE VIEW vw_booking AS SELECT book.id,
   book.job_id,
   truck.owner ->> 'fullName'::text AS fullname,
   truck.owner ->> 'avatar'::text AS avatar,
@@ -320,7 +335,7 @@ const createView = async () => {
    LEFT JOIN dblink('truckserver'::text, 'SELECT id,truck_type,loading_weight,stall_height,created_at,updated_at,approve_status,registration_number,truck_photos,work_zone,tipper,owner FROM vw_truck_details'::text) truck(id integer, truck_type integer, loading_weight double precision, stall_height text, created_at timestamp without time zone, updated_at timestamp without time zone, approve_status text, registration_number text, truck_photos jsonb, work_zone jsonb, tipper boolean, owner jsonb) ON truck.id = book.truck_id
 GROUP BY book.id, truck.id, truck.truck_type, truck.loading_weight, truck.stall_height, truck.created_at, truck.updated_at, truck.approve_status, truck.registration_number, truck.truck_photos, truck.work_zone, truck.tipper, truck.owner;`
 
-  const sqlCreateViewJobBookingTruckList = `CREATE VIEW vw_job_booking_truck_list AS SELECT book.id,
+  const sqlCreateViewJobBookingTruckList = `CREATE OR REPLACE VIEW vw_job_booking_truck_list AS SELECT book.id,
   book.truck_id,
   json_build_object('object', usr.avatar) AS avatar,
   usr.fullname,
@@ -330,7 +345,7 @@ GROUP BY book.id, truck.id, truck.truck_type, truck.loading_weight, truck.stall_
    LEFT JOIN dblink('userserver'::text, 'SELECT id,fullname,avatar FROM user_profile'::text) usr(id integer, fullname text, avatar text) ON usr.id = book.requester_user_id
 GROUP BY book.id, usr.avatar, usr.fullname;`
 
-  const sqlCreateViewJobWithBookingId = `CREATE VIEW vw_job_with_booking_id AS SELECT job.id,
+  const sqlCreateViewJobWithBookingId = `CREATE OR REPLACE VIEW vw_job_with_booking_id AS SELECT job.id,
   book.id AS booking_id,
   job.product_type_id,
   job.product_name,
@@ -351,7 +366,7 @@ GROUP BY book.id, usr.avatar, usr.fullname;`
    LEFT JOIN dblink('jobserver'::text, 'SELECT id,product_type_id,product_name,truck_type,weight,required_truck_amount,loading_address,loading_datetime,loading_contact_name,loading_contact_phone,loading_latitude,loading_longitude,price,price_type,owner,shipments,quotations FROM vw_job_list'::text) job(id integer, product_type_id integer, product_name text, truck_type integer, weight numeric, required_truck_amount integer, loading_address text, loading_datetime timestamp without time zone, loading_contact_name text, loading_contact_phone text, loading_latitude double precision, loading_longitude double precision, price numeric, price_type text, owner jsonb, shipments jsonb, quotations jsonb) ON job.id = book.job_id
 GROUP BY book.id, job.id, job.product_type_id, job.product_name, job.truck_type, job.weight, job.required_truck_amount, job.loading_contact_name, job.loading_datetime, job.loading_contact_phone, job.loading_latitude, job.loading_longitude, job.shipments, job.owner, job.price, job.price_type, job.quotations;`
 
-  const sqlCreateViewMyJobDoneList = `CREATE VIEW vw_my_job_done_list AS SELECT listall.id,
+  const sqlCreateViewMyJobDoneList = `CREATE OR REPLACE VIEW vw_my_job_done_list AS SELECT listall.id,
   listall.user_id,
   listall.product_type_id,
   listall.product_name,
@@ -415,7 +430,7 @@ GROUP BY book.id, job.id, job.product_type_id, job.product_name, job.truck_type,
         GROUP BY job.id, job.user_id, job.product_type_id, job.product_name, job.truck_type, job.weight, job.required_truck_amount, job.loading_contact_name, job.loading_datetime, job.loading_contact_phone, job.loading_latitude, job.loading_longitude, job.shipments, job.owner, job.price, job.price_type, job.status, job.loading_address) listall
 GROUP BY listall.id, listall.user_id, listall.loading_datetime, listall.product_type_id, listall.product_name, listall.truck_type, listall.weight, listall.required_truck_amount, listall."to", listall.owner, listall.status, listall.requester_type, listall.requester_user_id, listall.accepter_user_id, listall.price, listall.price_type, listall."from", listall.job_status;`
 
-  const sqlCreateViewMyJobNewList = `CREATE VIEW vw_my_job_new_list AS  SELECT listall.id,
+  const sqlCreateViewMyJobNewList = `CREATE OR REPLACE VIEW vw_my_job_new_list AS  SELECT listall.id,
   listall.user_id,
   listall.product_type_id,
   listall.product_name,
@@ -483,7 +498,7 @@ GROUP BY listall.id, listall.user_id, listall.loading_datetime, listall.product_
 GROUP BY listall.id, listall.user_id, listall.loading_datetime, listall.product_type_id, listall.product_name, listall.truck_type, listall.weight, listall.required_truck_amount, listall."to", listall.owner, listall.status, listall.requester_type, listall.requester_user_id, listall.accepter_user_id, listall.price, listall.price_type, listall."from", listall.tipper, listall.quotations;
 `
 
-  const sqlCreateViewTripInprogress = `CREATE VIEW vw_trip_inprogress AS SELECT jc.id,
+  const sqlCreateViewTripInprogress = `CREATE OR REPLACE VIEW vw_trip_inprogress AS SELECT jc.id,
     jc.job_id,
     jc.carrier_id,
     vwjob.product_type_id,
@@ -504,7 +519,7 @@ GROUP BY listall.id, listall.user_id, listall.loading_datetime, listall.product_
   GROUP BY jc.id, jc.job_id, jc.carrier_id, vwjob.product_type_id, vwjob.truck_type, vwjob.weight, vwjob.required_truck_amount, vwjob.loading_address, vwjob.loading_datetime, vwjob.loading_contact_name, vwjob.loading_contact_phone, vwjob.loading_latitude, vwjob.loading_longitude, vwjob.owner, vwjob.shipments, vwjob.product_name, vwjob.price, vwjob.price_type;
   `
 
-  const sqlCreateViewTripWithTruckDetail = `CREATE VIEW vw_trip_with_truck_detail AS SELECT jc.id AS job_carrier_id,
+  const sqlCreateViewTripWithTruckDetail = `CREATE OR REPLACE VIEW vw_trip_with_truck_detail AS SELECT jc.id AS job_carrier_id,
   jc.job_id,
   jc.carrier_id,
   json_agg(json_build_object('id', t.id, 'truckId', t.truck_id, 'weight', COALESCE(t.weight, vwtruck.loading_weight), 'price', COALESCE(t.price, vwjob.price), 'priceType', t.price_type, 'status', t.status, 'bookingId', t.booking_id, 'truckType', vwtruck.truck_type, 'stallHeight', vwtruck.stall_height, 'createdAt', vwtruck.created_at, 'updatedAt', vwtruck.updated_at, 'approveStatus', vwtruck.approve_status, 'phoneNumber', vwtruck.owner ->> 'mobileNo'::text, 'registrationNumber', vwtruck.registration_number, 'workingZones', vwtruck.work_zone, 'owner', vwtruck.owner, 'tipper', vwtruck.tipper)) AS trips
@@ -515,7 +530,7 @@ GROUP BY listall.id, listall.user_id, listall.loading_datetime, listall.product_
 GROUP BY jc.id, jc.job_id, jc.carrier_id;
   `
 
-  const sqlCreateViewTripListAll = `CREATE VIEW vw_trip_all AS SELECT t.id,
+  const sqlCreateViewTripListAll = `CREATE OR REPLACE VIEW vw_trip_all AS SELECT t.id,
   jc.job_id,
   t.job_carrier_id,
   t.truck_id,
@@ -537,14 +552,79 @@ GROUP BY jc.id, jc.job_id, jc.carrier_id;
    LEFT JOIN dblink('truckserver'::text, 'SELECT id, approve_status, loading_weight, registration_number, stall_height, quotation_number, tipper, truck_type, created_at, updated_at, carrier_id, owner, work_zone FROM vw_truck_list'::text) vwtruck(id integer, approve_status character varying, loading_weight numeric, registration_number text[], stall_height character varying, quotation_number integer, tipper boolean, truck_type integer, created_at timestamp without time zone, updated_at timestamp without time zone, carrier_id integer, owner jsonb, work_zone jsonb) ON vwtruck.id = t.truck_id
 GROUP BY t.truck_id, t.status, t.id, t.job_carrier_id, jc.job_id, vwjob.product_type_id, vwjob.truck_type, vwjob.weight, vwjob.required_truck_amount, vwjob.loading_address, vwjob.loading_datetime, vwjob.loading_contact_name, vwjob.loading_contact_phone, vwjob.loading_latitude, vwjob.loading_longitude, vwjob.owner, vwjob.shipments, vwjob.product_name, vwjob.price, vwjob.price_type;`
 
-  await connectNewDB.query(sqlCreateViewBooking);
-  await connectNewDB.query(sqlCreateViewJobBookingTruckList);
-  await connectNewDB.query(sqlCreateViewJobWithBookingId);
-  await connectNewDB.query(sqlCreateViewMyJobDoneList);
-  await connectNewDB.query(sqlCreateViewMyJobNewList);
-  await connectNewDB.query(sqlCreateViewTripInprogress);
-  await connectNewDB.query(sqlCreateViewTripWithTruckDetail);
-  await connectNewDB.query(sqlCreateViewTripListAll);
+  const sqlCreateTransportationV2 = `CREATE OR REPLACE VIEW vw_transportation_v2 AS SELECT listall.id,
+  listall.user_id,
+  listall.product_type_id,
+  listall.product_name,
+  listall.truck_type,
+  listall.weight,
+  listall.required_truck_amount,
+  listall.loading_datetime,
+  listall."from",
+  listall."to",
+  listall.owner,
+  listall.trips,
+  listall.status,
+  listall.tipper,
+  listall.price,
+  listall.price_type,
+  listall.full_text_search
+ FROM ( SELECT jc.job_id AS id,
+          job.user_id,
+          job.product_type_id,
+          job.product_name,
+          job.truck_type,
+          job.weight,
+          job.required_truck_amount,
+          job.loading_datetime,
+          json_build_object('name', job.loading_address, 'dateTime', job.loading_datetime, 'contactName', job.loading_contact_name, 'contactMobileNo', job.loading_contact_phone, 'lat', job.loading_latitude, 'lng', job.loading_longitude)::jsonb AS "from",
+          job.shipments AS "to",
+          job.owner,
+          json_agg(jsonb_build_object('id', trip.id, 'jobCarrierId', jc.id, 'weight', trip.weight, 'price', trip.price, 'status', trip.status, 'createdAt', trip.created_at, 'createdUser', trip.created_user, 'startDate', trip.start_date, 'isDeleted', trip.is_deleted, 'truck', json_build_object('id', trucky.id, 'approveStatus', trucky.approve_status, 'loadingWeight', trucky.loading_weight, 'registrationNumber', trucky.registration_number, 'stallHeight', trucky.stall_height, 'tipper', trucky.tipper, 'truckType', trucky.truck_type, 'createdAt', trucky.created_at, 'updatedAt', trucky.updated_at, 'carrierId', trucky.carrier_id, 'truckPhotos', trucky.truck_photos, 'workZones', trucky.work_zone, 'owner', trucky.owner)))::jsonb AS trips,
+          job.status,
+          job.tipper,
+          job.price,
+          job.price_type,
+          job.full_text_search
+         FROM job_carrier jc
+           LEFT JOIN trip trip ON jc.id = trip.job_carrier_id
+           LEFT JOIN dblink('jobserver'::text, 'SELECT id,user_id,product_type_id,product_name,truck_type,weight,required_truck_amount,loading_address,loading_datetime,loading_contact_name,loading_contact_phone,loading_latitude,loading_longitude,tipper,price,price_type,owner,shipments,status,full_text_search FROM vw_job_list'::text) job(id integer, user_id integer, product_type_id integer, product_name text, truck_type integer, weight numeric, required_truck_amount integer, loading_address text, loading_datetime timestamp without time zone, loading_contact_name text, loading_contact_phone text, loading_latitude double precision, loading_longitude double precision, tipper boolean, price numeric, price_type text, owner jsonb, shipments jsonb, status text, full_text_search text) ON job.id = jc.job_id
+           LEFT JOIN dblink('truckserver'::text, 'SELECT id,approve_status,loading_weight,registration_number,stall_height,tipper,truck_type,created_at,updated_at,carrier_id,truck_photos,work_zone,owner FROM vw_truck_details'::text) trucky(id integer, approve_status text, loading_weight double precision, registration_number text[], stall_height text, tipper boolean, truck_type integer, created_at timestamp without time zone, updated_at timestamp without time zone, carrier_id integer, truck_photos jsonb, work_zone jsonb, owner jsonb) ON trip.truck_id = trucky.id
+        GROUP BY jc.job_id, job.id, job.user_id, job.product_type_id, job.product_name, job.truck_type, job.weight, job.required_truck_amount, job.tipper, job.loading_contact_name, job.loading_datetime, job.loading_contact_phone, job.loading_latitude, job.loading_longitude, job.shipments, job.owner, job.price, job.price_type, job.loading_address, job.status, job.full_text_search
+      UNION ALL
+       SELECT job.id,
+          job.user_id,
+          job.product_type_id,
+          job.product_name,
+          job.truck_type,
+          job.weight,
+          job.required_truck_amount,
+          job.loading_datetime,
+          json_build_object('name', job.loading_address, 'datetime', job.loading_datetime, 'contact_name', job.loading_contact_name, 'contact_mobile_no', job.loading_contact_phone, 'lat', job.loading_latitude, 'lng', job.loading_longitude)::jsonb AS "from",
+          job.shipments AS "to",
+          job.owner,
+          NULL::jsonb AS jsonb,
+          job.status,
+          job.tipper,
+          job.price,
+          job.price_type,
+          job.full_text_search
+         FROM dblink('jobserver'::text, 'SELECT id,user_id,product_type_id,product_name,truck_type,status,weight,required_truck_amount,loading_address,loading_datetime,loading_contact_name,loading_contact_phone,loading_latitude,loading_longitude,tipper,price,price_type,owner,shipments,full_text_search FROM vw_job_list'::text) job(id integer, user_id integer, product_type_id integer, product_name text, truck_type integer, status text, weight numeric, required_truck_amount integer, loading_address text, loading_datetime timestamp without time zone, loading_contact_name text, loading_contact_phone text, loading_latitude double precision, loading_longitude double precision, tipper boolean, price numeric, price_type text, owner jsonb, shipments jsonb, full_text_search text)
+        WHERE NOT (job.id IN ( SELECT job_carrier.job_id
+                 FROM job_carrier))
+        GROUP BY job.id, job.user_id, job.product_type_id, job.product_name, job.truck_type, job.weight, job.required_truck_amount, job.tipper, job.loading_contact_name, job.loading_datetime, job.loading_contact_phone, job.loading_latitude, job.loading_longitude, job.shipments, job.owner, job.price, job.price_type, job.loading_address, job.status, job.full_text_search) listall
+GROUP BY listall.id, listall.trips, listall.user_id, listall.loading_datetime, listall.product_type_id, listall.product_name, listall.truck_type, listall.weight, listall.required_truck_amount, listall."to", listall.owner, listall.price, listall.price_type, listall."from", listall.tipper, listall.status, listall.full_text_search;
+  `
+
+  // await connectNewDB.query(sqlCreateViewBooking);
+  // await connectNewDB.query(sqlCreateViewJobBookingTruckList);
+  // await connectNewDB.query(sqlCreateViewJobWithBookingId);
+  // await connectNewDB.query(sqlCreateViewMyJobDoneList);
+  // await connectNewDB.query(sqlCreateViewMyJobNewList);
+  // await connectNewDB.query(sqlCreateViewTripInprogress);
+  // await connectNewDB.query(sqlCreateViewTripWithTruckDetail);
+  // await connectNewDB.query(sqlCreateViewTripListAll);
+  await connectNewDB.query(sqlCreateTransportationV2);
   console.log("Finished")
   return true;
 }
@@ -591,7 +671,7 @@ const updateCarrierIdGroupNewUser = async () => {
 }
 
 
-const updateSequenceAllTable = async() => {
+const updateSequenceAllTable = async () => {
   const connectNew = new Pool(newConnection)
   const connectNewDB = await connectNew.connect();
   const sqlUpdateSeqBooking = `SELECT setval('booking_seq', (select count(*) from booking), true);`
@@ -609,14 +689,14 @@ const updateSequenceAllTable = async() => {
 
 const main = async () => {
   try {
-    await createExtendsion()
-    await createTable()
+    // await createExtendsion()
+    // await createTable()
 
     await createView()
-    await runMigrateBookingService()
+    // await runMigrateBookingService()
 
-    await updateCarrierIdGroupNewUser()
-    await updateSequenceAllTable()
+    // await updateCarrierIdGroupNewUser()
+    // await updateSequenceAllTable()
     return true
   } catch (error) {
     console.log("Error :: ", error)

@@ -120,8 +120,8 @@ export class VwTransportationV2 {
   owner: {
     id: number
     userId: string
-    fullName: string
-    companyName: string
+    fullName: string | null
+    companyName: string | null
     email: string
     mobileNo: string
     avatar: {
@@ -207,11 +207,11 @@ export class VwTransportationV2 {
     const tmp = this.trips
     if (tmp && Array.isArray(tmp) && tmp.length > 0)
       tmp.map(e => {
-        e.id = e.id ? security.encodeUserId(+e.id) : '';
-        e.truck.id = e.truck.id ? security.encodeUserId(+e.truck.id) : '';
-        e.truck.carrierId = e.truck.carrierId ? security.encodeUserId(+e.truck.carrierId) : '';
-        e.truck.owner.companyName = e.truck.owner.fullName || ''
-        e.truck.owner.userId = e.truck.owner.id ? security.encodeUserId(+e.truck.owner.id) : ''
+        e.id = e?.id ? security.encodeUserId(+e.id) : '';
+        e.truck.id = e?.truck?.id ? security.encodeUserId(+e.truck.id) : '';
+        e.truck.carrierId = e?.truck?.carrierId ? security.encodeUserId(+e.truck.carrierId) : '';
+        e.truck.owner.companyName = e?.truck?.owner?.fullName || ''
+        e.truck.owner.userId = e?.truck?.owner?.id ? security.encodeUserId(+e.truck.owner.id) : ''
       })
   }
 
