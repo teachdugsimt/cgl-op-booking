@@ -16,7 +16,7 @@ export default class TransportationService {
   }
 
   async findTransportationList(query: Types.Transportation) {
-    let { rowsPerPage = 10, page = 1, descending = true, sortBy = 'id', where } = query;
+    let { rowsPerPage = 10, page = 1, descending = true, sortBy = 'updatedAt', where = { trips: 'NOT_NULL' } } = query;
 
     let realPage: number;
     let realTake: number;
@@ -44,7 +44,7 @@ export default class TransportationService {
       skip: realPage,
       where: filter,
       order: {
-        [camelToSnakeCase(sortBy)]: descending ? 'DESC' : 'ASC'
+        [sortBy]: descending ? 'DESC' : 'ASC'
       },
     };
     response = await transportationRepoV2.findTransportation(findOptions)
