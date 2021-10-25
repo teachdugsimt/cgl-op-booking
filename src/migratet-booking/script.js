@@ -281,7 +281,7 @@ const runMigrateBookingService = async () => {
 
 
 const createExtendsion = async () => {
-  const connectNew = new Pool(newConnection)
+  const connectNew = new Pool(prodConnection)
   const connectNewDB = await connectNew.connect();
   const sqlCreateExtensionDblink = `CREATE EXTENSION IF NOT EXISTS dblink;`;
 
@@ -307,15 +307,23 @@ SERVER userserver OPTIONS (user '${newUser}', password '${newPassword}');`;
   const sqlCreateJobMapping = `CREATE USER MAPPING FOR "public"
   SERVER jobserver OPTIONS (user 'postgres', password '${newPassword}');`
 
-  await connectNewDB.query(sqlCreateExtensionDblink);
-  await connectNewDB.query(sqlCreateExtensionFdw);
-  await connectNewDB.query(sqlCreateDblinkConnect);
-  await connectNewDB.query(sqlCreateUserService);
-  await connectNewDB.query(sqlCreateUserMapping);
-  await connectNewDB.query(sqlCreateTruckService);
-  await connectNewDB.query(sqlCreateTruckMapping);
-  await connectNewDB.query(sqlCreateJobService);
-  await connectNewDB.query(sqlCreateJobMapping);
+  const sqlCreatePaymentServer = `CREATE server paymentserver foreign data wrapper postgres_fdw
+  OPTIONS (dbname 'payment_service', host 'cgl-dev-db.ccyrpfjhgi1v.ap-southeast-1.rds.amazonaws.com');`
+
+  const sqlCreatePaymentMapping = `CREATE USER MAPPING FOR "public"
+  SERVER paymentserver OPTIONS (user 'postgres', password '.9^Piv-.KlzZhZm.MU7vXZU7yE9I-4');`
+
+  // await connectNewDB.query(sqlCreateExtensionDblink);
+  // await connectNewDB.query(sqlCreateExtensionFdw);
+  // await connectNewDB.query(sqlCreateDblinkConnect);
+  // await connectNewDB.query(sqlCreateUserService);
+  // await connectNewDB.query(sqlCreateUserMapping);
+  // await connectNewDB.query(sqlCreateTruckService);
+  // await connectNewDB.query(sqlCreateTruckMapping);
+  // await connectNewDB.query(sqlCreateJobService);
+  // await connectNewDB.query(sqlCreateJobMapping);
+  await connectNewDB.query(sqlCreatePaymentServer);
+  await connectNewDB.query(sqlCreatePaymentMapping);
 
 }
 
@@ -693,7 +701,7 @@ const updateSequenceAllTable = async () => {
 
 const main = async () => {
   try {
-    // await createExtendsion()
+    await createExtendsion()
     // await createTable()
 
     await createView()
