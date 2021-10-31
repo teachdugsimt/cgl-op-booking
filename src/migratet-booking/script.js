@@ -313,15 +313,15 @@ SERVER userserver OPTIONS (user '${newUser}', password '${newPassword}');`;
   const sqlCreatePaymentMapping = `CREATE USER MAPPING FOR "public"
   SERVER paymentserver OPTIONS (user 'postgres', password '.9^Piv-.KlzZhZm.MU7vXZU7yE9I-4');`
 
-  // await connectNewDB.query(sqlCreateExtensionDblink);
-  // await connectNewDB.query(sqlCreateExtensionFdw);
-  // await connectNewDB.query(sqlCreateDblinkConnect);
-  // await connectNewDB.query(sqlCreateUserService);
-  // await connectNewDB.query(sqlCreateUserMapping);
-  // await connectNewDB.query(sqlCreateTruckService);
-  // await connectNewDB.query(sqlCreateTruckMapping);
-  // await connectNewDB.query(sqlCreateJobService);
-  // await connectNewDB.query(sqlCreateJobMapping);
+  await connectNewDB.query(sqlCreateExtensionDblink);
+  await connectNewDB.query(sqlCreateExtensionFdw);
+  await connectNewDB.query(sqlCreateDblinkConnect);
+  await connectNewDB.query(sqlCreateUserService);
+  await connectNewDB.query(sqlCreateUserMapping);
+  await connectNewDB.query(sqlCreateTruckService);
+  await connectNewDB.query(sqlCreateTruckMapping);
+  await connectNewDB.query(sqlCreateJobService);
+  await connectNewDB.query(sqlCreateJobMapping);
   await connectNewDB.query(sqlCreatePaymentServer);
   await connectNewDB.query(sqlCreatePaymentMapping);
 
@@ -627,14 +627,14 @@ GROUP BY t.truck_id, t.status, t.id, t.job_carrier_id, jc.job_id, vwjob.product_
 GROUP BY listall.id, listall.trips, listall.user_id, listall.loading_datetime, listall.product_type_id, listall.product_name, listall.truck_type, listall.weight, listall.required_truck_amount, listall."to", listall.owner, listall.price, listall.price_type, listall."from", listall.tipper, listall.status, listall.full_text_search, listall.updated_at;
 `
 
-  // await connectNewDB.query(sqlCreateViewBooking);
-  // await connectNewDB.query(sqlCreateViewJobBookingTruckList);
-  // await connectNewDB.query(sqlCreateViewJobWithBookingId);
-  // await connectNewDB.query(sqlCreateViewMyJobDoneList);
-  // await connectNewDB.query(sqlCreateViewMyJobNewList);
-  // await connectNewDB.query(sqlCreateViewTripInprogress);
-  // await connectNewDB.query(sqlCreateViewTripWithTruckDetail);
-  // await connectNewDB.query(sqlCreateViewTripListAll);
+  await connectNewDB.query(sqlCreateViewBooking);
+  await connectNewDB.query(sqlCreateViewJobBookingTruckList);
+  await connectNewDB.query(sqlCreateViewJobWithBookingId);
+  await connectNewDB.query(sqlCreateViewMyJobDoneList);
+  await connectNewDB.query(sqlCreateViewMyJobNewList);
+  await connectNewDB.query(sqlCreateViewTripInprogress);
+  await connectNewDB.query(sqlCreateViewTripWithTruckDetail);
+  await connectNewDB.query(sqlCreateViewTripListAll);
   await connectNewDB.query(sqlCreateTransportationV2);
   console.log("Finished")
   return true;
@@ -697,17 +697,43 @@ const updateSequenceAllTable = async () => {
 }
 
 
+const checkTripEmptyJobCarrierId = async () => {
+
+  const connectNew = new Pool(prodConnection)
+  const connectNewDB = await connectNew.connect();
+
+  const sqlUpdateSeqBooking = `SELECT * from trip;`
+  const { rows: List } = await connectNewDB.query(sqlUpdateSeqBooking);
+  const { rows: ListJC } = await connectNewDB.query(`select * from job_carrier`);
+  // console.log("Rows : ", List)
+
+  let cnt = 0
+  for (const attr of List) {
+    let findParent = ListJC.find(jc => jc.id == attr.job_carrier_id)
+    if (findParent) {
+      cnt++;
+    } else {
+      console.log("None job carrier data : ", attr.id)
+    }
+  }
+
+  console.log("Finish Checking !! ", cnt)
+
+  return true
+}
+
 
 const main = async () => {
   try {
-    await createExtendsion()
+    // await createExtendsion()
     // await createTable()
 
-    await createView()
+    // await createView()
     // await runMigrateBookingService()
 
     // await updateCarrierIdGroupNewUser()
     // await updateSequenceAllTable()
+    await checkTripEmptyJobCarrierId()
     return true
   } catch (error) {
     console.log("Error :: ", error)
