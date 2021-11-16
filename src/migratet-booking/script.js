@@ -128,13 +128,15 @@ const QuotationTruckBookingJobModel = sql.define({
   columns: ["id", "carrier_id", "order_id", "status", "offered_total", "version",
     "created_at", "updated_at", "created_user", "updated_user", "id_deleted",
     "id_viewed", "type_quote", "tax_total", "valid_until", "truck_type", "other_informations",
-    "weight", "reason_of_reject", "loading_address", "loading_datetime", "truck_id"],
+    "weight", "reason_of_reject", "loading_address", "loading_datetime", "truck_id"
+  ],
 });
 
 const QuotationJobBookingTruckModel = sql.define({
   name: "dtb_quotation_truck",
   columns: ["id", "order_id", "truck_id", "status", "booking_datetime", "action_datetime",
-    "version", "created_at", "updated_at", "created_user", "updated_user", "is_deleted"]
+    "version", "created_at", "updated_at", "created_user", "updated_user", "is_deleted"
+  ]
 })
 
 const JobModel = sql.define({
@@ -153,13 +155,15 @@ const JobModel = sql.define({
     "total_distance", "check_loading_service", "check_unloading_service", "recommend_carrier_id",
     "recommend_truck_id", "loading_address_en", "loading_address_th", "loading_province_id",
     "loading_district_id", "reason_of_reject", "parent_order_id", "is_single_trip",
-    "carrier_price", "truck_amount", "platform", "price_type", "tipper"]
+    "carrier_price", "truck_amount", "platform", "price_type", "tipper"
+  ]
 })
 
 const newBookingModel = sql.define({
   name: "booking",
   columns: ["id", "truck_id", "job_id", "requester_type", "status",
-    "requester_user_id", "accepter_user_id", "created_at", "updated_at",]
+    "requester_user_id", "accepter_user_id", "created_at", "updated_at",
+  ]
 })
 
 const jobCarrierModel = sql.define({
@@ -171,7 +175,8 @@ const tripModel = sql.define({
   name: "trip",
   columns: ["id", "job_carrier_id", "truck_id", "weight", "price",
     "price_type", "status", "booking_id", "version", "created_at",
-    "updated_at", "created_user", "updated_user", "is_deleted",]
+    "updated_at", "created_user", "updated_user", "is_deleted",
+  ]
 })
 
 const runMigrateBookingService = async () => {
@@ -589,7 +594,7 @@ GROUP BY t.truck_id, t.status, t.id, t.job_carrier_id, jc.job_id, vwjob.product_
           json_build_object('name', job.loading_address, 'dateTime', job.loading_datetime, 'contactName', job.loading_contact_name, 'contactMobileNo', job.loading_contact_phone, 'lat', job.loading_latitude, 'lng', job.loading_longitude)::jsonb AS "from",
           job.shipments AS "to",
           job.owner,
-          json_agg(jsonb_build_object('id', trip.id, 'jobCarrierId', jc.id, 'weight', trip.weight, 'price', trip.price, 'status', trip.status, 'createdAt', trip.created_at, 'createdUser', trip.created_user, 'startDate', trip.start_date, 'isDeleted', trip.is_deleted, 'truck', json_build_object('id', trucky.id, 'approveStatus', trucky.approve_status, 'loadingWeight', trucky.loading_weight, 'registrationNumber', trucky.registration_number, 'stallHeight', trucky.stall_height, 'tipper', trucky.tipper, 'truckType', trucky.truck_type, 'createdAt', trucky.created_at, 'updatedAt', trucky.updated_at, 'carrierId', trucky.carrier_id, 'truckPhotos', trucky.truck_photos, 'workZones', trucky.work_zone, 'owner', trucky.owner)))::jsonb AS trips,
+          json_agg(jsonb_build_object('id', trip.id, 'jobCarrierId', jc.id, 'weight', trip.weight, 'price', pay.price_per_ton, 'status', trip.status, 'createdAt', trip.created_at, 'createdUser', trip.created_user, 'startDate', trip.start_date, 'isDeleted', trip.is_deleted, 'truck', json_build_object('id', trucky.id, 'approveStatus', trucky.approve_status, 'loadingWeight', trucky.loading_weight, 'registrationNumber', trucky.registration_number, 'stallHeight', trucky.stall_height, 'tipper', trucky.tipper, 'truckType', trucky.truck_type, 'createdAt', trucky.created_at, 'updatedAt', trucky.updated_at, 'carrierId', trucky.carrier_id, 'truckPhotos', trucky.truck_photos, 'workZones', trucky.work_zone, 'owner', trucky.owner)))::jsonb AS trips,
           max(trip.updated_at) AS updated_at,
           job.status,
           job.tipper,
@@ -598,6 +603,7 @@ GROUP BY t.truck_id, t.status, t.id, t.job_carrier_id, jc.job_id, vwjob.product_
           job.full_text_search
          FROM job_carrier jc
            LEFT JOIN trip trip ON jc.id = trip.job_carrier_id
+           LEFT JOIN dblink('paymentserver'::text, 'SELECT id,trip_id,price_per_ton FROM payment_carrier'::text) pay(id INTEGER, trip_id INTEGER, price_per_ton INTEGER) ON trip.id = pay.trip_id
            LEFT JOIN dblink('jobserver'::text, 'SELECT id,user_id,product_type_id,product_name,truck_type,weight,required_truck_amount,loading_address,loading_datetime,loading_contact_name,loading_contact_phone,loading_latitude,loading_longitude,tipper,price,price_type,owner,shipments,status,full_text_search FROM vw_job_list'::text) job(id integer, user_id integer, product_type_id integer, product_name text, truck_type integer, weight numeric, required_truck_amount integer, loading_address text, loading_datetime timestamp without time zone, loading_contact_name text, loading_contact_phone text, loading_latitude double precision, loading_longitude double precision, tipper boolean, price numeric, price_type text, owner jsonb, shipments jsonb, status text, full_text_search text) ON job.id = jc.job_id
            LEFT JOIN dblink('truckserver'::text, 'SELECT id,approve_status,loading_weight,registration_number,stall_height,tipper,truck_type,created_at,updated_at,carrier_id,truck_photos,work_zone,owner FROM vw_truck_details'::text) trucky(id integer, approve_status text, loading_weight double precision, registration_number text[], stall_height text, tipper boolean, truck_type integer, created_at timestamp without time zone, updated_at timestamp without time zone, carrier_id integer, truck_photos jsonb, work_zone jsonb, owner jsonb) ON trip.truck_id = trucky.id
         GROUP BY jc.job_id, job.id, job.user_id, job.product_type_id, job.product_name, job.truck_type, job.weight, job.required_truck_amount, job.tipper, job.loading_contact_name, job.loading_datetime, job.loading_contact_phone, job.loading_latitude, job.loading_longitude, job.shipments, job.owner, job.price, job.price_type, job.loading_address, job.status, job.full_text_search
@@ -625,16 +631,17 @@ GROUP BY t.truck_id, t.status, t.id, t.job_carrier_id, jc.job_id, vwjob.product_
                  FROM job_carrier))
         GROUP BY job.id, job.user_id, job.product_type_id, job.product_name, job.truck_type, job.weight, job.required_truck_amount, job.tipper, job.loading_contact_name, job.loading_datetime, job.loading_contact_phone, job.loading_latitude, job.loading_longitude, job.shipments, job.owner, job.price, job.price_type, job.loading_address, job.status, job.full_text_search) listall
 GROUP BY listall.id, listall.trips, listall.user_id, listall.loading_datetime, listall.product_type_id, listall.product_name, listall.truck_type, listall.weight, listall.required_truck_amount, listall."to", listall.owner, listall.price, listall.price_type, listall."from", listall.tipper, listall.status, listall.full_text_search, listall.updated_at;
+
 `
 
-  await connectNewDB.query(sqlCreateViewBooking);
-  await connectNewDB.query(sqlCreateViewJobBookingTruckList);
-  await connectNewDB.query(sqlCreateViewJobWithBookingId);
-  await connectNewDB.query(sqlCreateViewMyJobDoneList);
-  await connectNewDB.query(sqlCreateViewMyJobNewList);
-  await connectNewDB.query(sqlCreateViewTripInprogress);
-  await connectNewDB.query(sqlCreateViewTripWithTruckDetail);
-  await connectNewDB.query(sqlCreateViewTripListAll);
+  // await connectNewDB.query(sqlCreateViewBooking);
+  // await connectNewDB.query(sqlCreateViewJobBookingTruckList);
+  // await connectNewDB.query(sqlCreateViewJobWithBookingId);
+  // await connectNewDB.query(sqlCreateViewMyJobDoneList);
+  // await connectNewDB.query(sqlCreateViewMyJobNewList);
+  // await connectNewDB.query(sqlCreateViewTripInprogress);
+  // await connectNewDB.query(sqlCreateViewTripWithTruckDetail);
+  // await connectNewDB.query(sqlCreateViewTripListAll);
   await connectNewDB.query(sqlCreateTransportationV2);
   console.log("Finished")
   return true;
@@ -728,12 +735,12 @@ const main = async () => {
     // await createExtendsion()
     // await createTable()
 
-    // await createView()
+    await createView()
     // await runMigrateBookingService()
 
     // await updateCarrierIdGroupNewUser()
     // await updateSequenceAllTable()
-    await checkTripEmptyJobCarrierId()
+    // await checkTripEmptyJobCarrierId()
     return true
   } catch (error) {
     console.log("Error :: ", error)
