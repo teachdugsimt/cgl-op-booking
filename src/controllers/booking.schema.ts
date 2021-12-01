@@ -12,11 +12,31 @@ export const bookingSchema: FastifySchema = {
     type: 'object',
     properties: {
       jobId: { type: 'string' },
-      truckId: { type: 'string' },
+      truckId: { type: 'string', nullable: true },
       requesterType: { type: 'string' },
       accepterUserId: { type: 'string' },
     },
-    require: ['jobId', 'truckId', 'accepterUserId', 'requesterType']
+    require: ['jobId', 'accepterUserId', 'requesterType']
+  },
+  response: {
+    200: {
+      type: 'number',
+      additionalProperties: false
+    }
+  }
+}
+
+export const bookingSchema2: FastifySchema = {
+  body: {
+    type: 'object',
+    properties: {
+      jobId: { type: 'string' },
+      truckId: { type: 'string', nullable: true },
+      requesterType: { type: 'string' },
+      accepterUserId: { type: 'string' },
+      requesterUserId: { type: 'string' }
+    },
+    require: ['jobId', 'accepterUserId', 'requesterType', 'requesterUserId']
   },
   response: {
     200: {

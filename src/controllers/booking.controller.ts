@@ -3,7 +3,7 @@ import { Controller, GET, POST, PATCH, getInstanceByToken } from 'fastify-decora
 import BookingService from '../services/booking.service';
 import TransportationService from '../services/transportation.service';
 import {
-  bookingSchema, bookingUpdateSchema, getMyJobSchema,
+  bookingSchema, bookingSchema2, bookingUpdateSchema, getMyJobSchema,
   getJobWithBookingId, getTransportation, addPaymentSchema,
   getPaymentSchema, getTransportationId
 } from './booking.schema';
@@ -28,7 +28,31 @@ export default class BookingController {
     const userIdFromToken = util.getUserIdByToken(req.headers.authorization);
     const userId = util.decodeUserId(userIdFromToken)
     const jobId = util.decodeUserId(req.body.jobId)
-    const truckId = util.decodeUserId(req.body.truckId)
+    const truckId = req?.body?.truckId ? util.decodeUserId(req.body.truckId) : null
+    const accepterUserId = util.decodeUserId(req.body.accepterUserId)
+    const objectParams = {
+      jobId, truckId,
+      requesterType: req.body.requesterType,
+      requesterUserId: userId,
+      accepterUserId,
+    }
+    console.log("Object Params controller :: ", objectParams)
+    const result = await this.bookingService.createBooking(objectParams)
+    if (result && result.id)
+      reply.send(1) // success
+    else reply.send(0) // fail
+  }
+
+  @POST({
+    url: '/line-booking',
+    options: {
+      schema: bookingSchema2
+    }
+  })
+  async postBookingHandler2(req: FastifyRequest<{ Body: Types.PostBookingLine }>, reply: FastifyReply): Promise<any> {
+    const userId = util.decodeUserId(req.body.requesterUserId)
+    const jobId = util.decodeUserId(req.body.jobId)
+    const truckId = req?.body?.truckId ? util.decodeUserId(req.body.truckId) : null
     const accepterUserId = util.decodeUserId(req.body.accepterUserId)
     const objectParams = {
       jobId, truckId,

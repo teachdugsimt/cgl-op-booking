@@ -4,6 +4,13 @@ export interface PostBooking {
   requesterType: "JOB_OWNER" | "TRUCK_OWNER" | null
   accepterUserId: string
 }
+export interface PostBookingLine {
+  jobId: string
+  truckId?: string
+  requesterType: "JOB_OWNER" | "TRUCK_OWNER" | null
+  accepterUserId: string
+  requesterUserId: string
+}
 
 export interface FullPostBooking {
   jobId: number
