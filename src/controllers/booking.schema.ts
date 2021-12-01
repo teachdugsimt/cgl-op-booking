@@ -106,6 +106,48 @@ export const getMyJobSchema: FastifySchema = {
   }
 }
 
+export const getAllBooking: FastifySchema = {
+  headers: {
+    type: 'object',
+    properties: {
+      authorization: { type: 'string' }
+    },
+    require: ['authorization']
+  },
+  querystring: {
+    type: 'object',
+    properties: {
+      descending: { type: 'boolean', nullable: true },
+      page: { type: 'number', nullable: true },
+      rowsPerPage: { type: 'number', nullable: true },
+      sortBy: { type: 'string', nullable: true },
+      requesterType: {
+        type: 'string',
+        nullable: true,
+        enum: ['TRUCK_OWNER', 'JOB_OWNER']
+      },
+      status: {
+        type: 'string',
+        nullable: true,
+        enum: ['ACCEPTED', 'WAITING', 'REJECTED']
+      }
+    }
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        data: { type: 'array' },
+        totalElements: { type: 'number' },
+        size: { type: 'number' },
+        numberOfElements: { type: 'number' },
+        currentPage: { type: 'number' },
+        totalPages: { type: 'number' },
+      },
+    }
+  }
+}
+
 
 
 const truckProperties = {

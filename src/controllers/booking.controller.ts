@@ -5,7 +5,7 @@ import TransportationService from '../services/transportation.service';
 import {
   bookingSchema, bookingSchema2, bookingUpdateSchema, getMyJobSchema,
   getJobWithBookingId, getTransportation, addPaymentSchema,
-  getPaymentSchema, getTransportationId
+  getPaymentSchema, getTransportationId, getAllBooking
 } from './booking.schema';
 import * as Types from './booking.types'
 import PaymentRepository from '../repositories/payment.repository';
@@ -67,7 +67,26 @@ export default class BookingController {
     else reply.send(0) // fail
   }
 
-
+  @GET({
+    url: '/',
+    options: {
+      schema: getAllBooking
+    }
+  })
+  async getAllBooking(req: FastifyRequest<{ Querystring: Types.MyJobFilterList, Headers: { authorization: string } }>, reply: FastifyReply): Promise<any> {
+    // const userIdFromToken = util.getUserIdByToken(req.headers.authorization);
+    // const userId = util.decodeUserId(userIdFromToken)
+    const { page, rowsPerPage = 10 } = req.query;
+    const result = await this.bookingService.findAllBooking(req.query);
+    return {
+      data: result.data,
+      size: rowsPerPage,
+      currentPage: page,
+      totalPages: Math.ceil(result.count / (+rowsPerPage)),
+      totalElements: result.count,
+      numberOfElements: result.data.length ?? 0,
+    }
+  }
 
   @PATCH({
     url: '/:quotationId',

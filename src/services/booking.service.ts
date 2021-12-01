@@ -4,6 +4,7 @@ import BookingRepository from '../repositories/booking.repository';
 import { FindManyOptions, FindOneOptions } from 'typeorm'
 import TripRepository from '../repositories/trip.repository';
 import JobCarrierRepository from '../repositories/job-carrier.repository';
+import VwBookingListRepository from '../repositories/vw-booking-list.repository';
 import TripService from './trip.service'
 import axios from 'axios'
 import moment from 'moment-timezone'
@@ -15,6 +16,7 @@ const trip = new TripService()
 const repo = new BookingRepository()
 const tripRepo = new TripRepository()
 const jobCarrierRepo = new JobCarrierRepository()
+const vwBookingListRepository = new VwBookingListRepository();
 
 const enum_booking_status = {
   0: "WAITING",
@@ -212,6 +214,49 @@ export default class BookingService {
     }
     console.log("Data in my job list FINAL :: ", response_final)
     return response_final
+  }
+
+  async findAllBooking(filter: Types.BookingFilter): Promise<any> {
+    let {
+      descending = true,
+      page,
+      rowsPerPage,
+      sortBy = 'id',
+      requesterType,
+      status
+    } = filter
+
+    let numbOfPage: number;
+    let numbOfLimit: number;
+    if (rowsPerPage) {
+      numbOfLimit = +rowsPerPage;
+    } else {
+      numbOfLimit = 10;
+    }
+    if (page) {
+      numbOfPage = +page === 1 ? 0 : (+page - 1) * numbOfLimit;
+    } else {
+      numbOfPage = 0;
+    }
+
+    const options: FindManyOptions = {
+      where: {
+        ...(requesterType ? { requesterType } : undefined),
+        ...(status ? { status } : undefined)
+      },
+      take: numbOfLimit,
+      skip: numbOfPage,
+      order: {
+        [sortBy.toLowerCase()]: descending ? 'DESC' : 'ASC'
+      },
+    }
+
+    const result = await vwBookingListRepository.findAndCount(options);
+
+    return {
+      data: result[0] || [],
+      count: result[1] || 0,
+    }
   }
 
   @Destructor()
