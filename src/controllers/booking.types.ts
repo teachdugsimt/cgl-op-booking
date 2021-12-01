@@ -24,6 +24,16 @@ export interface MyJobFilterList {
   searchText?: string | null
 }
 
+export interface BookingFilter {
+  descending?: boolean
+  page?: number | string
+  rowsPerPage?: number | string
+  sortBy?: string
+  status?: 'ACCEPTED' | 'WAITING' | 'REJECTED'
+  requesterType?: 'TRUCK_OWNER' | 'JOB_OWNER'
+  searchText?: string | null
+}
+
 
 export interface Transportation {
   descending?: boolean | undefined
