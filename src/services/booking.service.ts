@@ -1,7 +1,7 @@
 import { Service, Initializer, Destructor } from 'fastify-decorators';
 import * as Types from '../controllers/booking.types'
 import BookingRepository from '../repositories/booking.repository';
-import { FindManyOptions, FindOneOptions } from 'typeorm'
+import { FindManyOptions, FindOneOptions, ILike } from 'typeorm'
 import TripRepository from '../repositories/trip.repository';
 import JobCarrierRepository from '../repositories/job-carrier.repository';
 import VwBookingListRepository from '../repositories/vw-booking-list.repository';
@@ -217,13 +217,14 @@ export default class BookingService {
   }
 
   async findAllBooking(filter: Types.BookingFilter): Promise<any> {
-    let {
+    const {
       descending = true,
       page,
       rowsPerPage,
       sortBy = 'id',
       requesterType,
-      status
+      status,
+      searchText
     } = filter
 
     let numbOfPage: number;
@@ -239,11 +240,18 @@ export default class BookingService {
       numbOfPage = 0;
     }
 
+    const cond: string[] = [];
+
+    if (requesterType) cond.push(`requester_type = '${requesterType}'`);
+    if (status) cond.push(`status = '${status}'`);
+    if (searchText) {
+      cond.push(`(product_name ILIKE '%${searchText}%' OR requester_profile->>'fullName' ILIKE '%${searchText}%')`);
+    }
+
+    const whereCase = cond.length ? cond.join(' AND ') : {};
+
     const options: FindManyOptions = {
-      where: {
-        ...(requesterType ? { requesterType } : undefined),
-        ...(status ? { status } : undefined)
-      },
+      where: whereCase,
       take: numbOfLimit,
       skip: numbOfPage,
       order: {

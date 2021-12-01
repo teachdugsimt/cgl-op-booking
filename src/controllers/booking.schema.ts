@@ -130,7 +130,8 @@ export const getAllBooking: FastifySchema = {
         type: 'string',
         nullable: true,
         enum: ['ACCEPTED', 'WAITING', 'REJECTED']
-      }
+      },
+      searchText: { type: 'string' }
     }
   },
   response: {
